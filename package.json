@@ -1,0 +1,11 @@
+{
+  "name": "r20-ouw25",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Прототип листа Roll20 для «Укрытого моря: Благословенный прилив»",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "npm run build && node --test",
+    "test:ui": "npm run build && python3 scripts/ui_smoke.py"
+  }
+}

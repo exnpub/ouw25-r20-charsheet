@@ -1,0 +1,434 @@
+<div class="sheet-app">
+  <div class="sheet-brand-banner" role="img" aria-label="Место для брендированного баннера"></div>
+
+  <div class="sheet-mode-switch" role="group" aria-label="Тип листа">
+    <label class="sheet-mode-option"><input type="radio" name="attr_sheet_mode" value="merchant" checked><span>Коммерсант</span></label>
+    <label class="sheet-mode-option"><input type="radio" name="attr_sheet_mode" value="cooperative"><span>Кооператив</span></label>
+  </div>
+
+  <div class="sheet-panel sheet-panel-personal">
+    <div class="sheet-inline-fields">
+      <label class="sheet-field-inline">Имя-фамилия<input type="text" name="attr_character_name"></label>
+      <div class="sheet-card-field">
+        <label class="sheet-field-inline">Специальность
+          <select name="attr_specialty">
+            <option value="quartermaster">Завхоз</option>
+            <option value="navigator">Навигатор</option>
+            <option value="medic">Медик</option>
+            <option value="mechanic">Механик</option>
+          </select>
+        </label>
+        <p class="sheet-card-description"><span name="attr_specialty_description"></span></p>
+      </div>
+      <div class="sheet-money-field">
+        <label class="sheet-field-inline sheet-wide-input">Карманные деньги, ог.
+          <input type="number" name="attr_pocket_money" min="0" step="1" inputmode="numeric">
+        </label>
+        <p class="sheet-field-status"><span name="attr_pocket_money_status"></span></p>
+      </div>
+      <div class="sheet-subpanel">
+        <h3>Пенсионный счёт</h3>
+        <div class="sheet-inline-fields sheet-pension-controls">
+          <label class="sheet-field-inline">Накоплено, ог.
+            <input type="number" name="attr_pension_balance" value="0" min="0" step="1" readonly>
+          </label>
+          <label class="sheet-field-inline">Сумма пополнения, ог.
+            <input type="number" name="attr_pension_deposit" min="1" step="1" inputmode="numeric">
+          </label>
+          <button type="action" name="act_pension_deposit">Пополнить</button>
+        </div>
+        <p class="sheet-field-status"><span name="attr_pension_status"></span></p>
+      </div>
+      <label class="sheet-field-inline sheet-full-width">Большая мечта<input type="text" name="attr_big_dream"></label>
+    </div>
+
+    <div class="sheet-inline-fields">
+      <div class="sheet-card-field">
+        <label class="sheet-field-inline">Значимое прошлое
+          <select name="attr_past">
+          <option value="">— Выберите —</option>
+          <option value="veteran">Ветеран</option>
+          <option value="seeker">Ищущий</option>
+          <option value="colonist">Колонист</option>
+          <option value="deprived">Обделённый</option>
+          <option value="savage">Дикарь</option>
+          <option value="reconstructed">Перекроенный</option>
+          <option value="remnant">Останец</option>
+          <option value="augur">Авгур</option>
+          <option value="gambler">Игрок</option>
+          <option value="champion">Чемпион</option>
+          <option value="writer">Щелкопёр</option>
+          <option value="artist">Артист</option>
+          <option value="hard_worker">Трудяга</option>
+          <option value="sleeper">Спящий</option>
+          <option value="defect">Дефект</option>
+          <option value="slave">Невольник</option>
+          </select>
+        </label>
+        <p class="sheet-card-description"><span name="attr_past_description"></span></p>
+      </div>
+      <div class="sheet-card-field">
+        <label class="sheet-field-inline">Достоинство
+          <select name="attr_character_merit">
+          <option value="">— Выберите —</option>
+          <option value="stress_resistant">Высокая стрессоустойчивость</option>
+          <option value="erudite">Выдающаяся эрудиция</option>
+          <option value="charismatic">Подкупающая харизма</option>
+          <option value="connections">Обширные связи</option>
+          <option value="famous">Заслуженная известность</option>
+          <option value="agile">Сверхъестественная ловкость</option>
+          <option value="strong">Невероятная сила</option>
+          <option value="taste">Безупречный вкус</option>
+          <option value="manners">Галантные манеры</option>
+          <option value="trader">Торговая хватка</option>
+          <option value="prepared">Чрезвычайная запасливость</option>
+          <option value="buoyant">Положительная плавучесть</option>
+          <option value="stealthy">Инстинктивная скрытность</option>
+          <option value="enduring">Выдающаяся выносливость</option>
+          <option value="intuitive">Развитая интуиция</option>
+          <option value="empathetic">Отточенная эмпатия</option>
+          </select>
+        </label>
+        <p class="sheet-card-description"><span name="attr_merit_description"></span></p>
+      </div>
+      <div class="sheet-card-field">
+        <label class="sheet-field-inline">Недостаток
+          <select name="attr_character_flaw">
+          <option value="">— Выберите —</option>
+          <option value="addiction">Химическая зависимость</option>
+          <option value="cruel">Патологическая жестокость</option>
+          <option value="apathetic">Хроническая апатия</option>
+          <option value="schizophrenia">Запущенная шизофрения</option>
+          <option value="paranoid">Всепроникающая паранойя</option>
+          <option value="greedy">Ненасытная жадность</option>
+          <option value="sex_addiction">Зудящий сексоголизм</option>
+          <option value="distracted">Тотальная рассеянность</option>
+          <option value="overconfident">Агрессивная самоуверенность</option>
+          <option value="unhealthy">Подорванное здоровье</option>
+          <option value="injury">Неприятная травма</option>
+          <option value="forgetful">Регулярная забывчивость</option>
+          <option value="insensitive">Вопиющая нечуткость</option>
+          <option value="indecisive">Фатальная нерешительность</option>
+          <option value="kleptomaniac">Бессознательная клептомания</option>
+          <option value="notoriety">Нежелательная известность</option>
+          </select>
+        </label>
+        <p class="sheet-card-description"><span name="attr_flaw_description"></span></p>
+      </div>
+      <div class="sheet-card-field">
+        <label class="sheet-field-inline">История найма
+          <select name="attr_hiring_history">
+          <option value="">— Выберите —</option>
+          <option value="dance">Станцевал джигу — экономия на салонах</option>
+          <option value="tale">Рассказал чудовищную байку — продажная история</option>
+          <option value="bar">Позвал в бар — без похмелья и штрафов притонов</option>
+          <option value="checkers">Сыграл в шашки на контракт — +1 кость в азартных играх</option>
+          <option value="pitiful">Вызвал жалость — фондовые деньги</option>
+          <option value="letters">Предъявил рекомендации — подделка почерка и печатей</option>
+          <option value="bomb">Пригрозил бомбой — преимущество при блефе</option>
+          <option value="punctual">Не опоздал — преимущество при организации подстав</option>
+          <option value="kerwetka">Показал ручную керветку</option>
+          <option value="ate">Съел пресс-папье — устойчивость к ядам</option>
+          <option value="charming">Был неотразим — шутки и гипноз</option>
+          </select>
+        </label>
+        <p class="sheet-card-description"><span name="attr_hiring_description"></span></p>
+      </div>
+    </div>
+
+    <div class="sheet-wounds">
+      <span class="sheet-checklist-title">Раны:</span>
+      <label><input type="checkbox" name="attr_wound_1" value="1"><span>1</span></label>
+      <label><input type="checkbox" name="attr_wound_2" value="1"><span>2</span></label>
+      <label><input type="checkbox" name="attr_wound_3" value="1"><span>3</span></label>
+      <label class="sheet-wound-fourth"><input type="checkbox" name="attr_wound_4" value="1"><span>4</span></label>
+    </div>
+
+    <label class="sheet-field">Личные вещи<textarea name="attr_personal_items"></textarea></label>
+  </div>
+
+  <div class="sheet-panel sheet-panel-personal sheet-collision-panel">
+    <h3>Collision Engine: проверка удачи</h3>
+    <div class="sheet-inline-fields">
+      <label class="sheet-field-inline">Кости d6<input type="number" name="attr_ce_dice_count" min="4" step="1" value="4"></label>
+      <label class="sheet-field-inline">Вычет шестёрок<input type="number" name="attr_ce_pre_deduction" min="0" step="1" value="0"></label>
+      <button type="action" name="act_roll_collision">Бросить проверку</button>
+    </div>
+    <p>Последняя проверка: <strong name="attr_ce_status">Ожидает броска.</strong></p>
+    <p>Шестёрок выпало: <span name="attr_ce_raw_sixes"></span>; осталось после вычета: <span name="attr_ce_remaining_sixes"></span>.</p>
+  </div>
+
+  <div class="sheet-panel sheet-panel-cooperative">
+        <div class="sheet-mode-switch sheet-cooperative-tabs" role="group" aria-label="Раздел кооператива">
+      <label class="sheet-mode-option"><input type="radio" name="attr_cooperative_tab" value="attributes" checked><span>Атрибуты</span></label>
+    <label class="sheet-mode-option"><input type="radio" name="attr_cooperative_tab" value="contacts"><span>Контакты</span></label>
+      <label class="sheet-mode-option"><input type="radio" name="attr_cooperative_tab" value="contracts"><span>Контракты</span></label>
+      <label class="sheet-mode-option"><input type="radio" name="attr_cooperative_tab" value="ship"><span>Судно</span></label>
+    </div>
+
+    <div class="sheet-cooperative-tab-panel sheet-cooperative-attributes">
+    <div class="sheet-inline-fields">
+      <label class="sheet-field-inline">Название<input type="text" name="attr_cooperative_name"></label>
+      <label class="sheet-field-inline sheet-wide-input">Оперативный бюджет<input type="number" name="attr_cooperative_budget" min="0" step="1" inputmode="numeric">ог.</label>
+    </div>
+    <div class="sheet-cooperative-cards">
+      <div class="sheet-card-field">
+        <label class="sheet-field-inline">Репутация
+          <select name="attr_cooperative_reputation">
+            <option value="">— Выберите —</option>
+            <option value="profiteers">Рвачи</option>
+            <option value="hunters">Охотники</option>
+            <option value="purists">Чистоплюи</option>
+            <option value="smart">Умники</option>
+            <option value="daredevils">Сорвиголовы</option>
+            <option value="ordinary">Заурядности</option>
+          </select>
+        </label>
+        <p class="sheet-card-description"><span name="attr_reputation_description"></span></p>
+      </div>
+      <div class="sheet-card-field">
+        <label class="sheet-field-inline">Общие воспоминания
+          <select name="attr_shared_memory">
+            <option value="">— Выберите —</option>
+            <option value="rescue">Чудесное спасение</option>
+            <option value="lost_profit">Упущенная выгода</option>
+            <option value="scandal">Публичный скандал</option>
+            <option value="secret">Ужасная тайна</option>
+            <option value="fame">Пять токков славы</option>
+            <option value="blood">Кровь и смерть</option>
+          </select>
+        </label>
+        <p class="sheet-card-description"><span name="attr_shared_memory_description"></span></p>
+      </div>
+    </div>
+    <p class="sheet-field-status"><span name="attr_cooperative_budget_status"></span></p>
+    <textarea name="attr_memory_details"></textarea>
+    </div>
+
+    <div class="sheet-cooperative-tab-panel sheet-cooperative-contacts">
+      <div class="sheet-contact-table" role="table" aria-label="Контакты">
+        <div class="sheet-contact-header" role="row">
+          <span role="columnheader">Кто</span>
+          <span role="columnheader">Где</span>
+          <span role="columnheader">Отношение</span>
+          <span role="columnheader">Долг</span>
+        </div>
+        <fieldset class="repeating_contacts" role="rowgroup">
+          <div class="sheet-contact-row" role="row">
+            <input type="text" name="attr_contact_who" aria-label="Кто">
+            <input type="text" name="attr_contact_where" aria-label="Где">
+            <input type="text" name="attr_contact_relation" aria-label="Отношение">
+            <input type="number" name="attr_contact_debt" min="0" step="1" aria-label="Долг">
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <div class="sheet-cooperative-tab-panel sheet-cooperative-contracts">
+      <div class="sheet-contract-table" role="table" aria-label="Контракты">
+        <div class="sheet-contract-header" role="row">
+          <span role="columnheader">Что</span>
+          <span role="columnheader">Куда</span>
+          <span role="columnheader">Когда</span>
+          <span role="columnheader">Стоимость</span>
+        </div>
+        <fieldset class="repeating_contracts" role="rowgroup">
+          <div class="sheet-contract-row" role="row">
+            <input type="text" name="attr_contract_what" aria-label="Что">
+            <input type="text" name="attr_contract_destination" aria-label="Куда">
+            <input type="text" name="attr_contract_when" aria-label="Когда">
+            <input type="number" name="attr_contract_cost" min="0" step="1" aria-label="Стоимость">
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <div class="sheet-cooperative-tab-panel sheet-cooperative-ship">
+      <div class="sheet-inline-fields">
+        <div class="sheet-ship-heading">
+          <label class="sheet-ship-name" data-tooltip="Название вашего кораблика">HMS «
+            <input type="text" name="attr_ship_name" title="Название вашего кораблика">
+                » </label>
+          <select class="sheet-ship-class-select" name="attr_ship_class" aria-label="Класс судна">
+            <option value="0">нулевого класса</option>
+            <option value="1">первого класса</option>
+            <option value="2">второго класса</option>
+            <option value="3">третьего класса</option>
+            <option value="4">четвёртого класса</option>
+            <option value="5">пятого класса</option>
+            <option value="6">шестого класса</option>
+          </select>
+        </div>
+        <div class="sheet-ship-stats">
+          <div class="sheet-stat"><span>Скорость, сект. за вахту</span><strong name="attr_ship_speed">1</strong></div>
+          <div class="sheet-stat"><span>Потребление топлива, на сектор</span><strong name="attr_ship_fuel_rate">1</strong></div>
+          <div class="sheet-stat"><span>Потребление провианта, на сектор</span><strong name="attr_ship_provision_rate">1</strong></div>
+          <div class="sheet-stat"><span>Станин, доступно</span><strong name="attr_stanine_count">2</strong></div>
+          <div class="sheet-stat"><span>Вместимость трюма, в стаунтах</span><strong><span name="attr_cargo_occupied">0</span> / <span name="attr_cargo_capacity">1600</span></strong></div>
+        </div>
+        <div class="sheet-hold-bonus">
+          Бонус за «Вместительный трюм»: +<input type="number" title="d6 × 100" name="attr_hold_bonus" min="0" max="600" step="100" value="0"> ст.
+        </div>
+
+
+
+        <div class="sheet-ship-resources">
+          <label class="sheet-ship-resource">Экипаж, шт.
+              <input type="number" name="attr_crew_count" min="0" step="1" value="10">
+          </label>
+          <label class="sheet-ship-resource">Провиант, мер.
+            <input type="number" name="attr_provisions_stock" min="0" step="1" value="10">
+          </label>
+          <label class="sheet-ship-resource">Топливо, ст.
+            <input type="number" name="attr_fuel_stock" min="0" step="1" value="10">
+          </label>
+          <label class="sheet-ship-resource">Смуты, ед.
+              <input type="number" name="attr_unrest" min="0" step="1" value="0">
+          </label>
+          <label class="sheet-ship-resource">Груз в трюме, ст.
+            <input type="number" name="attr_cargo_load" min="0" step="1" value="0">
+          </label>
+        </div>
+      </div>
+
+
+      <div class="sheet-wounds sheet-ship-damage">
+        <label class="sheet-checklist-title">Поломы</label>
+        <label class="sheet-damage-1"><input type="checkbox" name="attr_ship_damage_1" value="1"><span>1</span></label>
+        <label class="sheet-damage-2"><input type="checkbox" name="attr_ship_damage_2" value="1"><span>2</span></label>
+        <label class="sheet-damage-3"><input type="checkbox" name="attr_ship_damage_3" value="1"><span>3</span></label>
+        <label class="sheet-damage-4"><input type="checkbox" name="attr_ship_damage_4" value="1"><span>4</span></label>
+        <label class="sheet-damage-5"><input type="checkbox" name="attr_ship_damage_5" value="1"><span>5</span></label>
+        <label class="sheet-damage-6"><input type="checkbox" name="attr_ship_damage_6" value="1"><span>6</span></label>
+        <label class="sheet-damage-7"><input type="checkbox" name="attr_ship_damage_7" value="1"><span>7</span></label>
+        <label class="sheet-damage-8"><input type="checkbox" name="attr_ship_damage_8" value="1"><span>8</span></label>
+        <label class="sheet-damage-9"><input type="checkbox" name="attr_ship_damage_9" value="1"><span>9</span></label>
+        <label class="sheet-damage-10"><input type="checkbox" name="attr_ship_damage_10" value="1"><span>10</span></label>
+        <label class="sheet-damage-11"><input type="checkbox" name="attr_ship_damage_11" value="1"><span>11</span></label>
+      </div>
+
+      <div class="bordered-sector">
+        <div class="sheet-ship-quality-columns">
+          <div class="sheet-ship-quality-group">
+            <h3>Достоинства</h3>
+            <div class="sheet-ship-quality-list">
+              <select name="attr_ship_merit_1" aria-label="Достоинство 1">
+                <option value="">—</option><option value="large_hold">Вместительный трюм</option><option value="unremarkable">Непримечательность</option><option value="quiet">Шумоизоляция</option><option value="low_profile">Низкий профиль</option><option value="strong_hull">Прочный корпус</option><option value="seaworthy">Ходкость</option>
+              </select>
+              <select name="attr_ship_merit_2" aria-label="Достоинство 2">
+                <option value="">—</option><option value="large_hold">Вместительный трюм</option><option value="unremarkable">Непримечательность</option><option value="quiet">Шумоизоляция</option><option value="low_profile">Низкий профиль</option><option value="strong_hull">Прочный корпус</option><option value="seaworthy">Ходкость</option>
+              </select>
+              <select name="attr_ship_merit_3" aria-label="Достоинство 3">
+                <option value="">—</option><option value="large_hold">Вместительный трюм</option><option value="unremarkable">Непримечательность</option><option value="quiet">Шумоизоляция</option><option value="low_profile">Низкий профиль</option><option value="strong_hull">Прочный корпус</option><option value="seaworthy">Ходкость</option>
+              </select>
+              <select name="attr_ship_merit_4" aria-label="Достоинство 4">
+                <option value="">—</option><option value="large_hold">Вместительный трюм</option><option value="unremarkable">Непримечательность</option><option value="quiet">Шумоизоляция</option><option value="low_profile">Низкий профиль</option><option value="strong_hull">Прочный корпус</option><option value="seaworthy">Ходкость</option>
+              </select>
+            </div>
+          </div>
+          <div class="sheet-ship-quality-group">
+            <h3>Недостатки</h3>
+            <div class="sheet-ship-quality-list">
+              <select name="attr_ship_flaw_1" aria-label="Недостаток 1">
+                <option value="">—</option><option value="clumsy">Неповоротливость</option><option value="cursed">Проклятие</option><option value="worn_hull">Изношенный корпус</option><option value="worn_engine">Изношенное двигло</option><option value="stolen">Судно ворованное</option><option value="vermin">Паразиты на борту</option>
+              </select>
+              <select name="attr_ship_flaw_2" aria-label="Недостаток 2">
+                <option value="">—</option><option value="clumsy">Неповоротливость</option><option value="cursed">Проклятие</option><option value="worn_hull">Изношенный корпус</option><option value="worn_engine">Изношенное двигло</option><option value="stolen">Судно ворованное</option><option value="vermin">Паразиты на борту</option>
+              </select>
+              <select name="attr_ship_flaw_3" aria-label="Недостаток 3">
+                <option value="">—</option><option value="clumsy">Неповоротливость</option><option value="cursed">Проклятие</option><option value="worn_hull">Изношенный корпус</option><option value="worn_engine">Изношенное двигло</option><option value="stolen">Судно ворованное</option><option value="vermin">Паразиты на борту</option>
+              </select>
+              <select name="attr_ship_flaw_4" aria-label="Недостаток 4">
+                <option value="">—</option><option value="clumsy">Неповоротливость</option><option value="cursed">Проклятие</option><option value="worn_hull">Изношенный корпус</option><option value="worn_engine">Изношенное двигло</option><option value="stolen">Судно ворованное</option><option value="vermin">Паразиты на борту</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+<div class="bordered-sector">
+      <div class="sheet-ship-equipment-columns">
+        <div class="sheet-ship-equipment-left">
+          <section class="sheet-ship-equipment-group">
+            <h3>Станины</h3>
+            <div class="sheet-ship-equipment-list sheet-equipment-selects">
+              <select name="attr_stanine_1" aria-label="Станина 1">
+                <option value="slagthrower">Шлакомёт (установлен)</option><option value="">Свободна</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+              </select>
+              <select name="attr_stanine_2" aria-label="Станина 2">
+                <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+              </select>
+              <select class="sheet-stanine-3" name="attr_stanine_3" aria-label="Станина 3">
+                <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+              </select>
+              <select class="sheet-stanine-4" name="attr_stanine_4" aria-label="Станина 4">
+                <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+              </select>
+              <select class="sheet-stanine-5" name="attr_stanine_5" aria-label="Станина 5">
+                <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+              </select>
+              <select class="sheet-stanine-6" name="attr_stanine_6" aria-label="Станина 6">
+                <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+              </select>
+              <select class="sheet-stanine-7" name="attr_stanine_7" aria-label="Станина 7">
+                <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+              </select>
+              <select class="sheet-stanine-8" name="attr_stanine_8" aria-label="Станина 8">
+                <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+              </select>
+            </div>
+          </section>
+          <section class="sheet-ship-equipment-group">
+            <h3>Обвес</h3>
+            <div class="sheet-ship-equipment-list">
+              <select name="attr_gear_1" aria-label="Обвес 1">
+                <option value="">Нет</option><option value="sandshoes">Пескоходы</option><option value="tow">Буксировочная оснастка</option>
+              </select>
+              <select name="attr_gear_2" aria-label="Обвес 2">
+                <option value="">Нет</option><option value="sandshoes">Пескоходы</option><option value="tow">Буксировочная оснастка</option>
+              </select>
+            </div>
+          </section>
+        </div>
+        <section class="sheet-ship-equipment-group">
+          <h3>Спец. отсеки</h3>
+          <div class="sheet-ship-equipment-list">
+            <select name="attr_compartment_1" aria-label="Отсек 1">
+              <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
+            </select>
+            <select name="attr_compartment_2" aria-label="Отсек 2">
+              <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
+            </select>
+            <select name="attr_compartment_3" aria-label="Отсек 3">
+              <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
+            </select>
+            <select name="attr_compartment_4" aria-label="Отсек 4">
+              <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
+            </select>
+          </div>
+        </section>
+      </div>
+      <p class="sheet-card-description"><span name="attr_equipment_description"></span></p>
+</div>
+<div class="bordered-sector">
+    <h3>Трюм, подробно</h3>
+      <textarea name="attr_cargo_notes"></textarea>
+      <h3>Прочие заметки</h3>
+    <textarea name="attr_cargo_notes"></textarea>
+</div>
+    </div>
+  </div>
+  </div>
+  <rolltemplate class="sheet-rolltemplate-ouw25">
+  <div class="sheet-roll-card">
+    <h3>{{title}}</h3>
+    <p>Сумма исходного пула: {{pool}}</p>
+    <p>Вычет до броска: {{pre_deduction}}</p>
+    <p>Шестёрок осталось: <strong>{{computed::pool}}</strong></p>
+    {{#rollGreater() computed::pool 1}}<p>Это успех!</p>{{/rollGreater() computed::pool 1}}
+    {{#rollTotal() computed::pool 1}}<p>Это успех, но…</p>{{/rollTotal() computed::pool 1}}
+    {{#rollLess() computed::pool 1}}<p>Это провал.</p>{{/rollLess() computed::pool 1}}
+    {{#risk}}<p>Риск форсажа: {{risk}}</p>{{/risk}}
+  </div>
+</rolltemplate>
+
+<!-- SHEET_WORKER -->

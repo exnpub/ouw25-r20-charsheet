@@ -1,0 +1,769 @@
+.ui-dialog .charsheet input[type=number] {
+    width: 5em;
+}
+
+.charcterviewer label {
+    font-size: 1rem;
+}
+.charsheet .sheet-app {
+  color: #242323;
+  font-family: Georgia, "Times New Roman", serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+  background: #f3efe3;
+  background-image: url("https://i.imgur.com/Z28BrcA.jpeg");
+  background-position: center;
+  background-size: cover;
+  min-height: 1080px;
+}
+
+.charsheet .sheet-app  input {
+  background: #fff;
+  padding: 4px;
+  height: 28px;
+}
+
+.charsheet .sheet-app input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.charsheet .sheet-app select {
+  box-sizing: border-box;
+  height: 28px;
+}
+
+.charsheet .sheet-brand-banner {
+  min-height: 7rem;
+  background: #8a2be2;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.charsheet .sheet-mode-switch,
+.charsheet .sheet-row,
+.charsheet .sheet-actions,
+.charsheet .sheet-wounds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.charsheet .sheet-wounds {
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  min-height: 2rem;
+  overflow-x: auto;
+}
+
+.charsheet .sheet-wounds label {
+  flex: 0 0 auto;
+}
+
+.charsheet .sheet-checklist-title {
+  flex: 0 0 auto;
+  margin: 0 0.25rem 0 0;
+  white-space: nowrap;
+}
+
+.charsheet .sheet-wounds h3.sheet-checklist-title {
+  color: #6f3829;
+  font-size: 1rem;
+  line-height: normal;
+  margin: 0 0.25rem 0 0;
+}
+
+.charsheet .sheet-mode-option,
+.charsheet .sheet-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.charsheet .sheet-mode-option {
+  flex-direction: row;
+  border: 1px solid #9a806a;
+  border-radius: 0.25rem;
+  padding: 0.4rem 0.6rem;
+}
+
+.charsheet .sheet-mode-option:has(input:checked) {
+  background: #6f3829;
+  color: #fff;
+}
+
+.charsheet .sheet-panel {
+  display: none;
+  border: 0px solid #9a806a;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.charsheet .sheet-app h2,
+.charsheet .sheet-app h3,
+.charsheet .sheet-app h4 {
+  font-weight: 400 !important;
+}
+
+.charsheet .sheet-panel h2,
+.charsheet .sheet-panel h3 {
+  margin-top: 0.8rem;
+  color: #6f3829;
+}
+
+.charsheet .sheet-panel h2 {
+  margin-bottom: 1em;
+}
+
+.charsheet .sheet-cooperative-tabs {
+  align-items: center;
+  flex-direction: row !important;
+  flex-wrap: nowrap;
+  margin-bottom: 0.75rem;
+  max-width: 100%;
+  width: max-content;
+}
+
+.charsheet .sheet-cooperative-tabs > .sheet-mode-option {
+  align-items: center;
+  display: flex !important;
+  flex: 0 0 auto;
+  flex-direction: row;
+  max-width: 100%;
+  white-space: nowrap;
+  width: fit-content !important;
+}
+
+.charsheet .sheet-cooperative-tab-panel {
+  display: none;
+  min-height: 200px;
+}
+
+.charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="attributes"]:checked) .sheet-cooperative-attributes,
+.charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="contacts"]:checked) .sheet-cooperative-contacts,
+.charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="contracts"]:checked) .sheet-cooperative-contracts,
+.charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="ship"]:checked) .sheet-cooperative-ship {
+  display: block;
+}
+
+.charsheet .sheet-cooperative-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.2rem;
+  row-gap: 0.6rem;
+}
+
+.charsheet .sheet-cooperative-cards .sheet-card-field,
+.charsheet .sheet-cooperative-cards .sheet-field-inline {
+  min-width: 0;
+  width: 100%;
+}
+
+.charsheet .sheet-cooperative-contracts .sheet-inline-fields {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.charsheet .sheet-cooperative-contracts .sheet-inline-fields > * {
+  grid-column: 1;
+}
+
+.charsheet .sheet-cooperative-contracts .sheet-contract-table,
+.charsheet .sheet-cooperative-contacts .sheet-contact-table {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.charsheet .sheet-cooperative-contracts .sheet-contract-header,
+.charsheet .sheet-cooperative-contracts .sheet-contract-row,
+.charsheet .sheet-cooperative-contacts .sheet-contact-header,
+.charsheet .sheet-cooperative-contacts .sheet-contact-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  min-width: 32rem;
+  margin: 2px;
+}
+
+.charsheet .sheet-cooperative-contracts .sheet-contract-header,
+.charsheet .sheet-cooperative-contacts .sheet-contact-header {
+  color: #6f3829;
+  margin-bottom: 0.4rem;
+}
+
+.charsheet .sheet-cooperative-contracts .sheet-contract-header > span,
+.charsheet .sheet-cooperative-contacts .sheet-contact-header > span {
+  border-bottom: 1px solid #9a806a;
+  font-weight: 400;
+  padding: 0.25rem 0.3rem;
+}
+
+.charsheet .sheet-cooperative-contracts .repeating_contracts,
+.charsheet .sheet-cooperative-contacts .repeating_contacts {
+  box-sizing: border-box;
+  min-width: 32rem;
+  width: 100%;
+}
+
+.charsheet .sheet-cooperative-contracts .repeating_contracts .repitem + .repitem,
+.charsheet .sheet-cooperative-contacts .repeating_contacts .repitem + .repitem {
+  margin-top: 0.75rem;
+}
+
+.charsheet .sheet-cooperative-contracts .sheet-contract-row input,
+.charsheet .sheet-cooperative-contacts .sheet-contact-row input {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.3rem;
+  width: 100%;
+}
+
+.charsheet .sheet-cooperative-contracts .sheet-field-inline:has(textarea) {
+  align-items: stretch !important;
+  flex-direction: column !important;
+  width: 100%;
+}
+
+.charsheet .sheet-inline-fields {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  align-items: start;
+  column-gap: 1.2rem;
+  row-gap: 0.6rem;
+}
+
+.charsheet .sheet-field-inline label {
+    font-size: 1rem !important;
+}
+
+.charsheet .sheet-field-inline {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.35rem;
+  margin: 0.2rem 0.6rem 0.2rem 0;
+}
+
+.charsheet .sheet-app label {
+  font-weight: 400 !important;
+}
+
+.charsheet .sheet-app label.sheet-field-inline:has(select) {
+  align-items: center !important;
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+.charsheet .sheet-app label.sheet-field-inline:has(select) > select {
+  align-self: center;
+  vertical-align: middle;
+}
+
+.charsheet .sheet-field-inline input,
+.charsheet .sheet-field-inline select {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 4.5rem;
+  padding: 0.3rem;
+  vertical-align: middle;
+}
+
+.charsheet .sheet-inline-fields > .sheet-card-field,
+.charsheet .sheet-inline-fields > .sheet-full-width,
+.charsheet .sheet-inline-fields > .sheet-field-status {
+  grid-column: 1 / -1;
+}
+
+.charsheet .sheet-card-field {
+  min-width: 0;
+}
+
+.charsheet .sheet-money-field {
+  min-width: 0;
+}
+
+.charsheet .sheet-card-field .sheet-field-inline {
+  width: 100%;
+}
+
+.charsheet .sheet-card-field select {
+  flex: 1;
+}
+
+.charsheet .sheet-wide-input input {
+  width: 18rem;
+}
+
+.charsheet .sheet-wide-input {
+  flex-wrap: wrap;
+}
+
+.charsheet .sheet-money-field > .sheet-wide-input {
+  width: 100%;
+}
+
+.charsheet .sheet-full-width input {
+  flex: 1;
+  width: 100%;
+}
+
+.charsheet .sheet-subpanel {
+  border: 1px solid #9a806a;
+  margin: 0.2rem 0;
+  min-width: 0;
+  padding: 0.5rem;
+}
+
+.charsheet .sheet-subpanel h3 {
+  margin-top: 0.2rem;
+}
+
+.charsheet .sheet-pension-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.charsheet .sheet-pension-controls .sheet-field-inline {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.charsheet .sheet-field input,
+.charsheet .sheet-field select,
+.charsheet .sheet-field textarea {
+  box-sizing: border-box;
+  min-width: 12rem;
+  padding: 0.4rem;
+}
+
+.charsheet .sheet-field textarea {
+  min-height: 4.5rem;
+  width: 90%;
+  height: 60px;
+}
+
+.charsheet .sheet-app textarea {
+  box-sizing: border-box;
+  height: 60px;
+  margin: 0.5rem;
+  min-height: 60px;
+  min-width: 0;
+  width: calc(100% - 1rem);
+}
+
+.charsheet .sheet-field {
+  display: flex;
+  margin: 0.5rem 0;
+}
+
+.charsheet .sheet-card-description {
+  color: #514638;
+  font-size: 0.9rem;
+  margin: 0.3rem 0 0.7rem;
+}
+
+.charsheet .sheet-field-status {
+  color: #8a2e1d;
+  min-height: 1em;
+  margin: 0.2rem 0 0.5rem;
+}
+
+.charsheet .sheet-pension-controls {
+  align-items: flex-end;
+}
+
+.charsheet .sheet-pension-controls button,
+.charsheet .sheet-inline-fields button {
+  background: #6f3829;
+  border: 0;
+  border-radius: 0.25rem;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.45rem 0.7rem;
+}
+
+.charsheet .sheet-inline-label {
+  margin-right: 0.35rem;
+  font-weight: 400 !important;
+}
+
+.charsheet .sheet-wounds label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem;
+}
+
+.charsheet .sheet-wounds label span {
+  display: none;
+}
+
+.charsheet .sheet-wound-fourth,
+.charsheet .sheet-damage-4,
+.charsheet .sheet-damage-5,
+.charsheet .sheet-damage-6,
+.charsheet .sheet-damage-7,
+.charsheet .sheet-damage-8,
+.charsheet .sheet-damage-9,
+.charsheet .sheet-damage-10,
+.charsheet .sheet-damage-11 {
+  display: none !important;
+}
+
+.charsheet .sheet-app .sheet-equipment-selects .sheet-stanine-3,
+.charsheet .sheet-app .sheet-equipment-selects .sheet-stanine-4,
+.charsheet .sheet-app .sheet-equipment-selects .sheet-stanine-5,
+.charsheet .sheet-app .sheet-equipment-selects .sheet-stanine-6,
+.charsheet .sheet-app .sheet-equipment-selects .sheet-stanine-7,
+.charsheet .sheet-app .sheet-equipment-selects .sheet-stanine-8 {
+  display: none !important;
+}
+
+.charsheet .sheet-cooperative-ship {
+  border: 0px solid #9a806a;
+  border-radius: 0.35rem;
+  margin-top: 1rem;
+  padding: 0.8rem;
+}
+
+.charsheet .bordered-sector {
+  border: 1px solid #9a806a;
+  border-radius: 0.35rem;
+  margin-top: 1rem;
+  padding: 0.8rem;
+}
+
+.charsheet .sheet-ship-quality-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.2rem;
+}
+
+.charsheet .sheet-ship-quality-group {
+  min-width: 0;
+}
+
+.charsheet .sheet-ship-quality-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.charsheet .sheet-ship-quality-list select {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.3rem;
+  width: 100%;
+}
+
+.charsheet .sheet-ship-equipment-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.2rem;
+}
+
+.charsheet .sheet-ship-equipment-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.charsheet .sheet-ship-equipment-group {
+  min-width: 0;
+}
+
+.charsheet .sheet-ship-equipment-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.charsheet .sheet-ship-equipment-list select {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.3rem;
+  width: 100%;
+}
+
+.charsheet .repeating_contracts {
+  border: 1px solid #9a806a;
+}
+
+.charsheet .sheet-inline-value {
+  margin: 0.2rem 0.6rem;
+}
+
+.charsheet .sheet-ship-stats {
+  box-sizing: border-box;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+  width: 100%;
+}
+
+.charsheet .sheet-ship-resources {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: 5px;
+  width: 100%;
+}
+
+.charsheet .sheet-ship-resource {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 1em;
+}
+
+.charsheet .sheet-ship-resource input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+}
+
+.charsheet .sheet-ship-resource-value {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.charsheet .sheet-ship-resource-value input {
+  flex: 1;
+}
+
+.charsheet .sheet-ship-heading {
+  align-items: center;
+  display: grid;
+  gap: 0.35rem;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(min-content, max-content) auto max-content max-content;
+  justify-content: start;
+  min-width: 0;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.charsheet .sheet-ship-name {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  gap: 0.35rem;
+  min-width: 0;
+  position: relative;
+  white-space: nowrap;
+}
+
+.charsheet .sheet-ship-name input {
+  box-sizing: border-box;
+  flex: 0 1 30ch;
+  max-width: 30ch;
+  min-width: 0;
+  line-height: 18px;
+  width: 30ch;
+}
+
+.charsheet .sheet-ship-name input,
+.charsheet .sheet-ship-class-select {
+  padding: 4px;
+}
+
+.charsheet .sheet-ship-class-select {
+  flex: 0 0 auto;
+}
+
+.charsheet .sheet-ship-class-caption {
+  white-space: nowrap;
+}
+
+.charsheet .sheet-ship-class-select {
+  appearance: none;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #242323 50%),
+    linear-gradient(135deg, #242323 50%, transparent 50%);
+  background-position: calc(100% - 8px) 50%, calc(100% - 4px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  box-sizing: border-box;
+  height: 28px;
+  line-height: 18px;
+  max-width: calc(16ch + 24px + 2px);
+  min-width: calc(16ch + 4px + 2px);
+  padding: 4px 20px 4px 4px;
+  transform: translateY(-1px);
+  width: calc(16ch + 4px + 2px);
+}
+
+.charsheet .sheet-stat {
+  border: 1px solid #9a806a;
+  border-radius: 0.25rem;
+  min-width: 0;
+  padding: 0.45rem;
+}
+
+.charsheet .sheet-stat > span {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.charsheet .sheet-stat strong {
+  display: block;
+  font-size: 1.725rem;
+  white-space: nowrap;
+}
+
+.charsheet .sheet-stat strong span {
+  display: inline;
+}
+
+.charsheet .sheet-meter-group {
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.charsheet .sheet-meter-group label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.charsheet .sheet-meter-group label > span {
+  font-size: 0.85rem;
+}
+
+.charsheet progress {
+  height: 1rem;
+  width: 100%;
+  accent-color: #527b55;
+}
+
+.charsheet .sheet-meter-group:has(input[name="attr_crew_low"]:checked) .sheet-crew-meter progress,
+.charsheet .sheet-unrest-meter:has(input[name="attr_unrest_high"]:checked) progress {
+  accent-color: #b3261e;
+}
+
+.charsheet .sheet-cooperative-ship:has(input[name="attr_crew_low"]:checked) input[name="attr_crew_count"] {
+  color: #b3261e;
+}
+
+.charsheet .sheet-hidden-state {
+  display: none !important;
+}
+
+.charsheet .sheet-hold-bonus {
+  box-sizing: border-box;
+  display: none;
+  border: 1px solid #9a806a;
+  grid-column: 1 / -1;
+  padding: 0.5rem;
+  width: 100% !important;
+}
+
+.smallnote span {
+    font-size: 1em;
+}
+
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="large_hold"]:checked) .sheet-hold-bonus {
+  display: block;
+}
+
+.charsheet .sheet-tooltip-toggle {
+  position: relative;
+}
+
+.charsheet .sheet-tooltip-toggle:has(input:not(:checked)):hover::after,
+.charsheet .sheet-ship-name[data-tooltip]:hover::after,
+.charsheet .sheet-ship-name[data-tooltip]:focus-within::after {
+  background: #6f3829;
+  border-radius: 0.25rem;
+  bottom: 100%;
+  color: #fff;
+  content: attr(data-tooltip);
+  left: 0;
+  max-width: 20rem;
+  padding: 0.4rem 0.6rem;
+  pointer-events: none;
+  position: absolute;
+  width: max-content;
+  z-index: 3;
+  font-size: 0.8em;
+}
+
+.charsheet .sheet-app:has(select[name="attr_past"] option[value="hard_worker"]:checked) .sheet-wound-fourth,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="1"]:checked) .sheet-stanine-3,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-stanine-3,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-stanine-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-stanine-3,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-stanine-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-stanine-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-stanine-3,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-stanine-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-stanine-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-stanine-6,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-stanine-3,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-stanine-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-stanine-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-stanine-6,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-stanine-7,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-stanine-3,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-stanine-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-stanine-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-stanine-6,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-stanine-7,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-stanine-8,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="1"]:checked) .sheet-damage-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-damage-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-damage-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-damage-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-damage-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-damage-6,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-damage-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-damage-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-damage-6,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-damage-7,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-6,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-7,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-8,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-4,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-5,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-6,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-7,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-8,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-9 {
+  display: inline-flex !important;
+}
+
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="0"]:checked) .sheet-damage-4,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="0"]:checked) .sheet-damage-5,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="1"]:checked) .sheet-damage-5,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="1"]:checked) .sheet-damage-6,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-damage-6,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-damage-7,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-damage-7,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-damage-8,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-damage-8,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-damage-9,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-9,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-10,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-10,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-11 {
+  display: inline-flex !important;
+}
+
+.charsheet .sheet-app:has(input[name="attr_sheet_mode"][value="merchant"]:checked) .sheet-panel-personal,
+.charsheet .sheet-app:has(input[name="attr_sheet_mode"][value="cooperative"]:checked) .sheet-panel-cooperative {
+  display: block;
+}
+
+.charsheet .sheet-rolltemplate-ouw25 .sheet-roll-card {
+  background: #f3efe3;
+  border: 1px solid #9a806a;
+  border-radius: 0.35rem;
+  color: #242323;
+  padding: 0.75rem;
+}
