@@ -116,6 +116,24 @@ test("build contains the CSS brand placeholder and guarded pension deposit contr
   assert.doesNotMatch(html, /<svg/i);
 });
 
+test("ship damage checklist has a visible title and base checkboxes", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  assert.match(html, /class="sheet-wounds sheet-ship-damage">\s*<span class="sheet-checklist-title">Поломы<\/span>/i);
+  for (const index of [1, 2, 3]) {
+    assert.match(html, new RegExp(`name="attr_ship_damage_${index}"`));
+  }
+  assert.match(css, /\.charsheet \.sheet-app \.sheet-ship-damage\s*\{[^}]*display:\s*flex !important/s);
+  assert.match(css, /\.charsheet \.sheet-app \.sheet-ship-damage \.sheet-damage-1,[\s\S]*?\.sheet-damage-3\s*\{[^}]*display:\s*inline-flex !important/s);
+  assert.match(css, /\.charsheet \.sheet-ship-damage label\[class\^="sheet-damage-"\] input\[type="checkbox"\]\s*\{[^}]*height:\s*24px;[^}]*opacity:\s*0;[^}]*width:\s*24px/s);
+  assert.match(html, /attr_ship_damage_1" value="1"><span class="sheet-damage-box"><\/span><span class="sheet-damage-icon sheet-damage-blast">💥<\/span><span class="sheet-damage-icon sheet-damage-skull">💀<\/span>/);
+  assert.match(css, /\.charsheet \.sheet-ship-damage label\[class\^="sheet-damage-"\] > \.sheet-damage-box\s*\{[^}]*display:\s*flex !important;[^}]*height:\s*24px;[^}]*width:\s*24px/s);
+  assert.match(css, /\.charsheet \.sheet-ship-damage input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast\s*\{[^}]*display:\s*flex !important/s);
+  assert.match(css, /option\[value="0"\]:checked\)[\s\S]*?\.sheet-damage-3 input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast \+ \.sheet-damage-skull/);
+  assert.match(css, /option\[value="6"\]:checked\) \.sheet-damage-11 input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast \+ \.sheet-damage-skull/);
+  assert.match(css, /\.charsheet \.sheet-ship-damage \.sheet-checklist-title\s*\{[^}]*font-size:\s*1\.5em/s);
+});
+
 test("build wires derived ship values, responsive equipment slots, and force roll queries", () => {
   const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
   const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");

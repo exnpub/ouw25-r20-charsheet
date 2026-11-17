@@ -54,6 +54,81 @@
   overflow-x: auto;
 }
 
+.charsheet .sheet-app .sheet-ship-damage {
+  display: flex !important;
+}
+
+.charsheet .sheet-app .sheet-ship-damage .sheet-damage-1,
+.charsheet .sheet-app .sheet-ship-damage .sheet-damage-2,
+.charsheet .sheet-app .sheet-ship-damage .sheet-damage-3 {
+  display: inline-flex !important;
+}
+
+.charsheet .sheet-ship-damage label[class^="sheet-damage-"] {
+  box-sizing: border-box;
+  flex: 0 0 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  width: 24px;
+}
+
+.charsheet .sheet-ship-damage label[class^="sheet-damage-"] input[type="checkbox"] {
+  height: 24px;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  padding: 0;
+  position: absolute;
+  width: 24px;
+  z-index: 1;
+}
+
+.charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-box {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #6f3829;
+  border-radius: 0.2rem;
+  box-sizing: border-box;
+  display: flex !important;
+  color: #242323;
+  height: 24px;
+  justify-content: center;
+  line-height: 1;
+  position: relative;
+  width: 24px;
+  z-index: 2;
+}
+
+.charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-icon {
+  align-items: center;
+  display: none !important;
+  font-size: 18px;
+  height: 24px;
+  justify-content: center;
+  left: 0;
+  line-height: 1;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 24px;
+  z-index: 3;
+}
+
+.charsheet .sheet-ship-damage input[type="checkbox"]:checked + .sheet-damage-box {
+  color: #fff;
+}
+
+.charsheet .sheet-ship-damage input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast {
+  display: flex !important;
+}
+
+.charsheet .sheet-ship-damage input[type="checkbox"]:focus-visible + span {
+  outline: 2px solid #242323;
+  outline-offset: 2px;
+}
+
 .charsheet .sheet-wounds label {
   flex: 0 0 auto;
 }
@@ -62,6 +137,10 @@
   flex: 0 0 auto;
   margin: 0 0.25rem 0 0;
   white-space: nowrap;
+}
+
+.charsheet .sheet-ship-damage .sheet-checklist-title {
+  font-size: 1.5em;
 }
 
 .charsheet .sheet-wounds h3.sheet-checklist-title {
@@ -753,6 +832,40 @@
 .charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-10,
 .charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-11 {
   display: inline-flex !important;
+}
+
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="0"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-3 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="1"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-4 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="2"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-5 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="3"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-6 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-7 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-8 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-9 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="0"]:checked) .sheet-damage-5 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="1"]:checked) .sheet-damage-6 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-damage-7 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-damage-8 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-damage-9 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-10 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-11 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast + .sheet-damage-skull {
+  display: flex !important;
+}
+
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="0"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-3 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="1"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-4 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="2"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-5 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="3"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-6 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="4"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-7 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="5"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-8 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="6"]:checked):not(:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked)) .sheet-damage-9 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="0"]:checked) .sheet-damage-5 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="1"]:checked) .sheet-damage-6 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-damage-7 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="3"]:checked) .sheet-damage-8 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="4"]:checked) .sheet-damage-9 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="5"]:checked) .sheet-damage-10 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-app:has(select[name^="attr_ship_merit_"] option[value="strong_hull"]:checked):has(select[name="attr_ship_class"] option[value="6"]:checked) .sheet-damage-11 input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast {
+  display: none !important;
 }
 
 .charsheet .sheet-app:has(input[name="attr_sheet_mode"][value="merchant"]:checked) .sheet-panel-personal,
