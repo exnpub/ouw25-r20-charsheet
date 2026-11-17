@@ -75,6 +75,7 @@
       stanine_count: "",
       cargo_occupied: "",
       cargo_capacity: "",
+      cargo_near_full: "0",
       cargo_progress: "0",
       cargo_meter_label: "",
       crew_progress: "0",
@@ -95,13 +96,22 @@
     });
   }
 
+  function getShipAttrs(names, callback) {
+    getSectionIDs("repeating_cargo", function (ids) {
+      const volumes = ids.map((id) => `repeating_cargo_${id}_cargo_item_volume`);
+      getAttrs([...names, ...volumes], function (values) {
+        callback(values, volumes.map((name) => values[name]));
+      });
+    });
+  }
+
   function updateShip(onComplete) {
     const damageNames = Array.from({ length: 11 }, (_, index) => `ship_damage_${index + 1}`);
     const names = [
       "ship_class", "crew_count", "forced_mode", "illumination_mode", "unrest",
       "cargo_load", "fuel_stock", "provisions_stock", "hold_bonus", ...SHIP_SELECTIONS, ...damageNames,
     ];
-    getAttrs(names, function (values) {
+    getShipAttrs(names, function (values, cargoVolumes) {
       const merits = [1, 2, 3, 4].map((index) => values[`ship_merit_${index}`]);
       const flaws = [1, 2, 3, 4].map((index) => values[`ship_flaw_${index}`]);
       const compartments = [1, 2, 3, 4].map((index) => values[`compartment_${index}`]);
@@ -129,6 +139,7 @@
           illumination,
           unrest: values.unrest || "0",
           cargoLoad: values.cargo_load || "0",
+          cargoVolumes,
           fuelStock: values.fuel_stock || "0",
           provisionsStock: values.provisions_stock || "0",
           holdBonus: values.hold_bonus || "0",
@@ -172,6 +183,7 @@
           stanine_count: String(Ouw25Rules.SHIP_CLASSES[stats.classIndex].stanines),
           cargo_occupied: String(stats.cargoOccupied),
           cargo_capacity: String(stats.holdCapacity),
+          cargo_near_full: stats.holdCapacity - stats.cargoOccupied <= 100 ? "1" : "0",
           cargo_progress: String(stats.cargoProgress),
           cargo_meter_label: `${stats.cargoOccupied} / ${stats.holdCapacity} ст.`,
           crew_progress: String(stats.crewProgress),
@@ -293,11 +305,11 @@
   }
 
   function travelSector() {
-    getAttrs([
+    getShipAttrs([
       "ship_class", "crew_count", "forced_mode", "illumination_mode",
       "unrest", "fuel_stock", "provisions_stock", "cargo_load", "hold_bonus",
       "travel_sectors", "travel_watches", ...SHIP_SELECTIONS,
-    ], function (values) {
+    ], function (values, cargoVolumes) {
       try {
         const stats = Ouw25Rules.calculateShip({
           shipClass: values.ship_class || "0",
@@ -306,6 +318,7 @@
           illumination: isChecked(values.illumination_mode),
           unrest: values.unrest || "0",
           cargoLoad: values.cargo_load || "0",
+          cargoVolumes,
           fuelStock: values.fuel_stock || "0",
           provisionsStock: values.provisions_stock || "0",
           holdBonus: values.hold_bonus || "0",
@@ -506,6 +519,7 @@
   );
   on("change:forced_mode", onForcedModeChange);
   on("change:illumination_mode", onIlluminationModeChange);
+  on("change:repeating_cargo:cargo_item_volume remove:repeating_cargo", updateShip);
   on("clicked:toggle_forced_mode", toggleForcedMode);
   on("clicked:toggle_illumination_mode", toggleIlluminationMode);
   on("clicked:travel_sector", travelSector);

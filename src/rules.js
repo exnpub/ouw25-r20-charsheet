@@ -206,6 +206,7 @@ var Ouw25Rules = (function () {
     illumination,
     unrest,
     cargoLoad,
+    cargoVolumes = [],
     fuelStock = "0",
     provisionsStock = "0",
     holdBonus,
@@ -219,6 +220,8 @@ var Ouw25Rules = (function () {
     const crewOverCapacity = crew > ship.crew;
     const seaUnrest = parseUnrest(unrest);
     const load = parseInteger(cargoLoad, "Груз в трюме", 0);
+    const listedCargo = cargoVolumes.reduce((sum, volume) =>
+      sum + parseResource(volume || "0", "Объём груза"), 0);
     const storedFuel = parseResource(fuelStock, "Запас топлива");
     const storedProvisions = parseResource(provisionsStock, "Запас провианта");
     const provisionsSpace = Math.ceil(storedProvisions / 18);
@@ -247,7 +250,7 @@ var Ouw25Rules = (function () {
       return sum + size;
     }, 0);
     const holdCapacity = ship.hold + expansion;
-    const cargoOccupied = load + storedFuel + provisionsSpace + compartmentSpace;
+    const cargoOccupied = load + listedCargo + storedFuel + provisionsSpace + compartmentSpace;
     const durability = ship.durability + (merits.includes("strong_hull") ? 2 : 0);
     const damaged = damage.filter(Boolean).length;
     const crewProgress = Math.min(100, Math.floor((crew / ship.crew) * 100));

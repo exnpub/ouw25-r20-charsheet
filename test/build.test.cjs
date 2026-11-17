@@ -54,6 +54,21 @@ test("build contains the two sheet modes and all character/cooperative blocks", 
   assert.doesNotMatch(html, /Планирование рейса|Журнал кооператива/);
 });
 
+test("cooperative attributes stack budget, reputation and memories beside notes", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  const attributes = html.split('class="sheet-cooperative-tab-panel sheet-cooperative-attributes"')[1]
+    .split('class="sheet-cooperative-tab-panel sheet-cooperative-contacts"')[0];
+  assert.match(attributes, /class="sheet-cooperative-attributes-layout"/);
+  assert.match(attributes, /<label class="bordered-sector sheet-cooperative-budget">\s*<span class="sheet-budget-title">БЮДЖЕТ<\/span>\s*<span class="sheet-budget-value"><input type="number" name="attr_cooperative_budget"/);
+  assert.match(attributes, /class="sheet-cooperative-cards">[\s\S]*name="attr_cooperative_reputation"[\s\S]*name="attr_shared_memory"/);
+  assert.match(css, /\.sheet-cooperative-attributes-layout\s*\{[^}]*grid-template-columns:\s*repeat\(2/s);
+  assert.match(attributes, /class="sheet-cooperative-budget-column">[\s\S]*name="attr_cooperative_budget"[\s\S]*class="sheet-cooperative-cards">[\s\S]*name="attr_shared_memory"[\s\S]*class="sheet-cooperative-notes-column">[\s\S]*name="attr_memory_details"/);
+  assert.match(css, /\.sheet-cooperative-budget\s*\{[^}]*flex-direction:\s*row;/s);
+  assert.match(css, /\.sheet-cooperative-notes-column textarea\s*\{[^}]*height:\s*300px;[^}]*width:\s*100%;/s);
+  assert.match(css, /\.sheet-cooperative-cards\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/s);
+});
+
 test("cooperative contacts tab precedes contracts and has four repeating columns", () => {
   const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
   const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
@@ -61,7 +76,7 @@ test("cooperative contacts tab precedes contracts and has four repeating columns
   assert.ok(tabs);
   assert.deepEqual(
     [...tabs.matchAll(/name="attr_cooperative_tab" value="([^"]+)"/g)].map(([, value]) => value),
-    ["attributes", "contacts", "contracts", "ship"],
+    ["attributes", "contacts", "contracts", "ship", "cargo"],
   );
   assert.match(html, /class="sheet-cooperative-tab-panel sheet-cooperative-contacts"/);
   assert.match(css, /value="contacts"\]:checked\) \.sheet-cooperative-contacts/);
@@ -76,7 +91,24 @@ test("cooperative contacts tab precedes contracts and has four repeating columns
     assert.match(html, new RegExp(`name="attr_${field}"[^>]*aria-label="${label}"`));
     assert.match(html, new RegExp(`<span role="columnheader">${label}<\\/span>`));
   }
-  assert.match(css, /\.sheet-cooperative-contacts \.sheet-contact-row\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)/s);
+  assert.match(css, /\.sheet-cooperative-contacts \.sheet-contact-row[^{}]*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)/s);
+});
+
+test("cargo tab provides three repeating columns and a ship occupancy warning state", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  assert.match(html, /class="sheet-cooperative-tab-panel sheet-cooperative-cargo"/);
+  assert.match(html, /class="repeating_cargo" role="rowgroup"/);
+  for (const [field, type, label] of [
+    ["name", "text", "Наименование"], ["quantity", "number", "Количество"],
+    ["volume", "number", "Объём, ст."],
+  ]) {
+    assert.match(html, new RegExp(`type="${type}" name="attr_cargo_item_${field}"[^>]*aria-label="${label}"`));
+    assert.ok(html.includes(`<span role="columnheader">${label}</span>`));
+  }
+  assert.match(html, /name="attr_cargo_near_full"/);
+  assert.match(css, /value="cargo"\]:checked\) \.sheet-cooperative-cargo/);
+  assert.match(css, /\.sheet-cooperative-cargo \.sheet-cargo-row\s*\{[^}]*grid-template-columns:\s*repeat\(3/s);
 });
 
 test("build contains the CSS brand placeholder and guarded pension deposit controls", () => {
@@ -93,7 +125,7 @@ test("build contains the CSS brand placeholder and guarded pension deposit contr
   assert.match(css, /\.sheet-panel h2\s*\{[^}]*margin-bottom:\s*1em/s);
   assert.match(css, /\.sheet-inline-fields\s*\{[^}]*grid-template-columns:\s*repeat\(2/s);
   assert.match(css, /\.sheet-inline-fields\s*\{[^}]*column-gap:\s*1\.2rem/s);
-  assert.match(css, /\.sheet-cooperative-cards\s*\{[^}]*column-gap:\s*1\.2rem/s);
+  assert.match(css, /\.sheet-cooperative-attributes-layout\s*\{[^}]*column-gap:\s*1\.2rem/s);
   assert.match(css, /\.sheet-cooperative-contracts \.sheet-inline-fields\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/s);
   assert.match(css, /\.repeating_contracts \.repitem \+ \.repitem\s*\{[^}]*margin-top:\s*0\.75rem/s);
   assert.match(css, /\.sheet-cooperative-tab-panel\s*\{[^}]*min-height:\s*200px/s);

@@ -221,14 +221,55 @@
 .charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="attributes"]:checked) .sheet-cooperative-attributes,
 .charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="contacts"]:checked) .sheet-cooperative-contacts,
 .charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="contracts"]:checked) .sheet-cooperative-contracts,
-.charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="ship"]:checked) .sheet-cooperative-ship {
+.charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="ship"]:checked) .sheet-cooperative-ship,
+.charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="cargo"]:checked) .sheet-cooperative-cargo {
   display: block;
 }
 
-.charsheet .sheet-cooperative-cards {
+.charsheet .sheet-cooperative-attributes-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 1.2rem;
+  align-items: start;
+}
+
+.charsheet .sheet-app .sheet-cooperative-budget {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.8rem;
+  width: 100%;
+}
+
+.charsheet .sheet-budget-title {
+  font-size: 1.7rem;
+}
+
+
+
+.charsheet .sheet-cooperative-budget-column,
+.charsheet .sheet-cooperative-notes-column {
+  min-width: 0;
+}
+
+.charsheet .sheet-budget-value input {
+  min-width: 15em;
+}
+
+.charsheet .sheet-app .sheet-cooperative-notes-column textarea {
+  box-sizing: border-box;
+  height: 300px;
+  margin: 0;
+  width: 100%;
+}
+
+.charsheet .sheet-cooperative-cards {
+  align-content: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   row-gap: 0.6rem;
 }
 
@@ -247,7 +288,8 @@
 }
 
 .charsheet .sheet-cooperative-contracts .sheet-contract-table,
-.charsheet .sheet-cooperative-contacts .sheet-contact-table {
+.charsheet .sheet-cooperative-contacts .sheet-contact-table,
+.charsheet .sheet-cooperative-cargo .sheet-cargo-table {
   overflow-x: auto;
   width: 100%;
 }
@@ -255,7 +297,9 @@
 .charsheet .sheet-cooperative-contracts .sheet-contract-header,
 .charsheet .sheet-cooperative-contracts .sheet-contract-row,
 .charsheet .sheet-cooperative-contacts .sheet-contact-header,
-.charsheet .sheet-cooperative-contacts .sheet-contact-row {
+.charsheet .sheet-cooperative-contacts .sheet-contact-row,
+.charsheet .sheet-cooperative-cargo .sheet-cargo-header,
+.charsheet .sheet-cooperative-cargo .sheet-cargo-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.6rem;
@@ -264,36 +308,55 @@
 }
 
 .charsheet .sheet-cooperative-contracts .sheet-contract-header,
-.charsheet .sheet-cooperative-contacts .sheet-contact-header {
+.charsheet .sheet-cooperative-contacts .sheet-contact-header,
+.charsheet .sheet-cooperative-cargo .sheet-cargo-header {
   color: #6f3829;
   margin-bottom: 0.4rem;
 }
 
 .charsheet .sheet-cooperative-contracts .sheet-contract-header > span,
-.charsheet .sheet-cooperative-contacts .sheet-contact-header > span {
+.charsheet .sheet-cooperative-contacts .sheet-contact-header > span,
+.charsheet .sheet-cooperative-cargo .sheet-cargo-header > span {
   border-bottom: 1px solid #9a806a;
   font-weight: 400;
   padding: 0.25rem 0.3rem;
 }
 
 .charsheet .sheet-cooperative-contracts .repeating_contracts,
-.charsheet .sheet-cooperative-contacts .repeating_contacts {
+.charsheet .sheet-cooperative-contacts .repeating_contacts,
+.charsheet .sheet-cooperative-cargo .repeating_cargo {
   box-sizing: border-box;
   min-width: 32rem;
   width: 100%;
 }
 
 .charsheet .sheet-cooperative-contracts .repeating_contracts .repitem + .repitem,
-.charsheet .sheet-cooperative-contacts .repeating_contacts .repitem + .repitem {
+.charsheet .sheet-cooperative-contacts .repeating_contacts .repitem + .repitem,
+.charsheet .sheet-cooperative-cargo .repeating_cargo .repitem + .repitem {
   margin-top: 0.75rem;
 }
 
 .charsheet .sheet-cooperative-contracts .sheet-contract-row input,
-.charsheet .sheet-cooperative-contacts .sheet-contact-row input {
+.charsheet .sheet-cooperative-contacts .sheet-contact-row input,
+.charsheet .sheet-cooperative-cargo .sheet-cargo-row input {
   box-sizing: border-box;
   min-width: 0;
   padding: 0.3rem;
   width: 100%;
+}
+
+.charsheet .sheet-cooperative-cargo .sheet-cargo-header,
+.charsheet .sheet-cooperative-cargo .sheet-cargo-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.charsheet .sheet-cooperative-cargo .sheet-cargo-header {
+  padding: 0 1px;
+}
+
+.charsheet .sheet-cooperative-cargo .repeating_cargo {
+  margin: 0;
+  padding: 0;
 }
 
 .charsheet .sheet-cooperative-contracts .sheet-field-inline:has(textarea) {
@@ -461,6 +524,7 @@
 }
 
 .charsheet .sheet-app textarea {
+  background: #fff;
   box-sizing: border-box;
   height: 60px;
   margin: 0.5rem;
@@ -699,7 +763,8 @@
   width: 100%;
 }
 
-.charsheet .repeating_contracts {
+.charsheet .repeating_contracts,
+.charsheet .repeating_cargo {
   border: 1px solid #9a806a;
 }
 
@@ -841,6 +906,10 @@
 
 .charsheet .sheet-stat-cargo .sheet-stat-value {
   display: inline;
+}
+
+.charsheet .sheet-stat-cargo:has(input[name="attr_cargo_near_full"]:checked) span[name="attr_cargo_occupied"] {
+  color: #b85c00;
 }
 
 .charsheet .sheet-stat-cargo {

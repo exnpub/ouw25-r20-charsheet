@@ -164,16 +164,21 @@
     <label class="sheet-mode-option"><input type="radio" name="attr_cooperative_tab" value="contacts"><span>Контакты</span></label>
       <label class="sheet-mode-option"><input type="radio" name="attr_cooperative_tab" value="contracts"><span>Контракты</span></label>
       <label class="sheet-mode-option"><input type="radio" name="attr_cooperative_tab" value="ship"><span>Судно</span></label>
+      <label class="sheet-mode-option"><input type="radio" name="attr_cooperative_tab" value="cargo"><span>Трюм</span></label>
     </div>
 
     <div class="sheet-cooperative-tab-panel sheet-cooperative-attributes">
-    <div class="sheet-inline-fields">
-      <label class="sheet-field-inline">Название<input type="text" name="attr_cooperative_name"></label>
-      <label class="sheet-field-inline sheet-wide-input">Оперативный бюджет<input type="number" name="attr_cooperative_budget" min="0" step="1" inputmode="numeric">ог.</label>
-    </div>
-    <div class="sheet-cooperative-cards">
+    <div class="sheet-cooperative-attributes-layout">
+      <div class="sheet-cooperative-budget-column">
+        <label class="bordered-sector sheet-cooperative-budget">
+          <span class="sheet-budget-title">БЮДЖЕТ</span>
+          <span class="sheet-budget-value"><input type="number" name="attr_cooperative_budget" min="0" step="1" inputmode="numeric"> ог.</span>
+        </label>
+        <p class="sheet-field-status"><span name="attr_cooperative_budget_status"></span></p>
+      <div class="sheet-cooperative-cards">
       <div class="sheet-card-field">
-        <label class="sheet-field-inline">Репутация
+        <h3>Репутация</h3>
+        <label class="sheet-field-inline">
           <select name="attr_cooperative_reputation">
             <option value="">— Выберите —</option>
             <option value="profiteers">Рвачи</option>
@@ -187,7 +192,8 @@
         <p class="sheet-card-description"><span name="attr_reputation_description"></span></p>
       </div>
       <div class="sheet-card-field">
-        <label class="sheet-field-inline">Общие воспоминания
+          <h3>Воспоминания</h3>
+        <label class="sheet-field-inline">
           <select name="attr_shared_memory">
             <option value="">— Выберите —</option>
             <option value="rescue">Чудесное спасение</option>
@@ -201,8 +207,12 @@
         <p class="sheet-card-description"><span name="attr_shared_memory_description"></span></p>
       </div>
     </div>
-    <p class="sheet-field-status"><span name="attr_cooperative_budget_status"></span></p>
-    <textarea name="attr_memory_details"></textarea>
+      </div>
+      <div class="sheet-cooperative-notes-column">
+        <h3>Заметки</h3>
+        <textarea name="attr_memory_details"></textarea>
+      </div>
+    </div>
     </div>
 
     <div class="sheet-cooperative-tab-panel sheet-cooperative-contacts">
@@ -281,6 +291,7 @@
           <div class="sheet-stat sheet-stat-cargo">
             <span class="sheet-stat-label">Вместимость трюма, в стаунтах</span>
             <span class="sheet-stat-value" name="attr_cargo_occupied">0</span> / <span class="sheet-stat-value" name="attr_cargo_capacity">1600</span>
+            <input class="sheet-hidden-state" type="checkbox" name="attr_cargo_near_full" value="1">
           </div>
         </div>
         <div class="sheet-hold-bonus">
@@ -455,11 +466,25 @@
       <p class="sheet-card-description"><span name="attr_equipment_description"></span></p>
 </div>
 <div class="bordered-sector">
-    <h3>Трюм, подробно</h3>
-      <textarea name="attr_cargo_notes"></textarea>
-      <h3>Прочие заметки</h3>
+      <h3>Заметки</h3>
     <textarea name="attr_cargo_notes"></textarea>
 </div>
+    </div>
+    <div class="sheet-cooperative-tab-panel sheet-cooperative-cargo">
+      <div class="sheet-cargo-table" role="table" aria-label="Трюм">
+        <div class="sheet-cargo-header" role="row">
+          <span role="columnheader">Наименование</span>
+          <span role="columnheader">Количество</span>
+          <span role="columnheader">Объём, ст.</span>
+        </div>
+        <fieldset class="repeating_cargo" role="rowgroup">
+          <div class="sheet-cargo-row" role="row">
+            <input type="text" name="attr_cargo_item_name" aria-label="Наименование">
+            <input type="number" name="attr_cargo_item_quantity" min="0" step="1" value="0" aria-label="Количество">
+            <input type="number" name="attr_cargo_item_volume" min="0" step="any" value="0" aria-label="Объём, ст.">
+          </div>
+        </fieldset>
+      </div>
     </div>
   </div>
   </div>

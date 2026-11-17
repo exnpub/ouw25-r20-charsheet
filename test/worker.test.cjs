@@ -21,6 +21,12 @@ function createWorkerHarness(attributes, dice, { applyWrites = false, macroResul
     getAttrs(names, callback) {
       callback(Object.fromEntries(names.map((name) => [name, attributes[name] ?? ""])));
     },
+    getSectionIDs(section, callback) {
+      const prefix = `${section}_`;
+      const ids = Object.keys(attributes).filter((name) => name.startsWith(prefix))
+        .map((name) => name.slice(prefix.length).split("_")[0]);
+      callback([...new Set(ids)]);
+    },
     setAttrs(values, options, callback) {
       writes.push(values);
       if (applyWrites) {
@@ -390,6 +396,59 @@ test("sector travel uses current class, crew and mode and supports fractional st
   larger.trigger("clicked:travel_sector");
   assert.equal(larger.attributes.fuel_stock, "8");
   assert.equal(larger.attributes.provisions_stock, "8");
+});
+
+test("repeating cargo volumes add to manual cargo, supplies and compartments on open, edits and deletion", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0", cargo_load: "100", fuel_stock: "20", provisions_stock: "18",
+    compartment_1: "passenger",
+    repeating_cargo_a_cargo_item_name: "Ящики",
+    repeating_cargo_a_cargo_item_quantity: "100",
+    repeating_cargo_a_cargo_item_volume: "300",
+    repeating_cargo_b_cargo_item_volume: "400.5",
+    repeating_cargo_blank_cargo_item_name: "Без объёма",
+  }, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(harness.attributes.cargo_occupied, "1241.5");
+  assert.equal(harness.attributes.cargo_near_full, "0");
+  harness.attributes.repeating_cargo_b_cargo_item_volume = "700";
+  harness.trigger("change:repeating_cargo:cargo_item_volume");
+  assert.equal(harness.attributes.cargo_occupied, "1541");
+  assert.equal(harness.attributes.cargo_near_full, "1");
+  delete harness.attributes.repeating_cargo_b_cargo_item_volume;
+  harness.trigger("remove:repeating_cargo");
+  assert.equal(harness.attributes.cargo_occupied, "841");
+  assert.equal(harness.attributes.cargo_near_full, "0");
+  harness.trigger("clicked:travel_sector");
+  assert.equal(harness.attributes.cargo_occupied, "840");
+  harness.attributes.repeating_cargo_a_cargo_item_volume = "-1";
+  harness.trigger("change:repeating_cargo:cargo_item_volume");
+  assert.equal(harness.attributes.cargo_occupied, "");
+  assert.match(harness.attributes.ship_status, /Объём груза/);
+});
+
+test("cargo occupancy warning starts with 100 free units and follows capacity and supplies", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0", repeating_cargo_a_cargo_item_volume: "1499",
+  }, [], { applyWrites: true });
+  for (const [volume, warning] of [["1499", "0"], ["1500", "1"], ["1600", "1"], ["1700", "1"]]) {
+    harness.attributes.repeating_cargo_a_cargo_item_volume = volume;
+    harness.trigger("change:repeating_cargo:cargo_item_volume");
+    assert.equal(harness.attributes.cargo_near_full, warning);
+  }
+  harness.attributes.repeating_cargo_a_cargo_item_volume = "1499";
+  harness.attributes.fuel_stock = "1";
+  harness.trigger("change:fuel_stock");
+  assert.equal(harness.attributes.cargo_near_full, "1");
+  harness.attributes.ship_merit_1 = "large_hold";
+  harness.attributes.hold_bonus = "100";
+  harness.trigger("change:hold_bonus");
+  assert.equal(harness.attributes.cargo_capacity, "1700");
+  assert.equal(harness.attributes.cargo_near_full, "0");
+  harness.attributes.ship_class = "1";
+  harness.trigger("change:ship_class");
+  assert.equal(harness.attributes.cargo_capacity, "3300");
+  assert.equal(harness.attributes.cargo_near_full, "0");
 });
 
 test("unrest display rounds up without losing fractional illumination gains or rollback precision", () => {
