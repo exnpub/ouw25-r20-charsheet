@@ -43,6 +43,25 @@ test("pocket and cooperative budgets accept only whole nonnegative numbers", () 
   assert.throws(() => Ouw25Rules.validateMoney("1.2", "Бюджет"), /Бюджет/);
 });
 
+test("pension stage explains the next threshold and completion without inventing post-retirement tiers", () => {
+  assert.match(Ouw25Rules.pensionStage("0"), /Отпусков заработано – 0\.\nДо следующего отпуска – /);
+  assert.match(Ouw25Rules.pensionStage("29999"), /\nДо следующего отпуска – 1 ог\./);
+  assert.match(Ouw25Rules.pensionStage("30000"), /Отпусков заработано – 1\.\n/);
+  assert.match(Ouw25Rules.pensionStage("239999"), /Отпусков заработано – 7\.\n/);
+  assert.match(Ouw25Rules.pensionStage("240000"), /Поздравляем/);
+  assert.equal(Ouw25Rules.pensionStage("240001"), Ouw25Rules.pensionStage("240000"));
+  assert.throws(() => Ouw25Rules.pensionStage("-1"), /Пенсионный счёт/);
+});
+
+test("personal random choices map book dice sums and reject rolls outside the selected table", () => {
+  assert.equal(Ouw25Rules.randomPersonalChoice("past", 3), "veteran");
+  assert.equal(Ouw25Rules.randomPersonalChoice("past", 18), "slave");
+  assert.equal(Ouw25Rules.randomPersonalChoice("flaw", 10), "distracted");
+  assert.throws(() => Ouw25Rules.randomPersonalChoice("past", 2), /некорректный/);
+  assert.throws(() => Ouw25Rules.randomPersonalChoice("past", 18.5), /некорректный/);
+  assert.throws(() => Ouw25Rules.randomPersonalChoice("dream", 11), /некорректный/);
+});
+
 test("all class defaults match the book ship table", () => {
   assert.deepEqual(
     Ouw25Rules.SHIP_CLASSES.map(({ fuel, provisions, crew, durability, stanines, hold }) =>

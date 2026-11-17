@@ -11,6 +11,7 @@ function createWorkerHarness(attributes, dice, { applyWrites = false, macroResul
   const writes = [];
   const finishes = [];
   const rolls = [];
+  let macroIndex = 0;
   const context = {
     on(events, callback) {
       for (const event of events.split(/\s+/)) {
@@ -19,7 +20,7 @@ function createWorkerHarness(attributes, dice, { applyWrites = false, macroResul
       }
     },
     getAttrs(names, callback) {
-      callback(Object.fromEntries(names.map((name) => [name, attributes[name] ?? ""])));
+      callback(Object.fromEntries(names.map((name) => [name, Object.hasOwn(attributes, name) ? attributes[name] : ""])));
     },
     getSectionIDs(section, callback) {
       const prefix = `${section}_`;
@@ -42,7 +43,7 @@ function createWorkerHarness(attributes, dice, { applyWrites = false, macroResul
       if (expression.includes("&{template:default}") || expression.includes("&{template:ouw25therapy}")) {
         callback({
           rollId: "test-macro",
-          results: macroResults,
+          results: Array.isArray(macroResults) ? (macroResults[macroIndex++] || {}) : macroResults,
         });
         return;
       }
@@ -100,6 +101,49 @@ test("Roll20 worker surfaces invalid Collision Engine input without rolling", ()
   assert.match(harness.writes[0].ce_status, /Количество костей/);
 });
 
+test("debts sum creditor amounts on open and recalculate after edits and removals", () => {
+  const attributes = {
+    repeating_creditors_first_creditor_amount: "120",
+    repeating_creditors_second_creditor_amount: "80",
+    repeating_creditors_blank_creditor_who: "Someone",
+    repeating_personalitems_item_personal_item_cost: "999",
+  };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(attributes.debt_total, "200");
+  attributes.repeating_creditors_second_creditor_amount = "30";
+  harness.trigger("change:repeating_creditors:creditor_amount");
+  assert.equal(attributes.debt_total, "150");
+  delete attributes.repeating_creditors_first_creditor_amount;
+  harness.trigger("remove:repeating_creditors");
+  assert.equal(attributes.debt_total, "30");
+  delete attributes.repeating_creditors_second_creditor_amount;
+  harness.trigger("remove:repeating_creditors");
+  assert.equal(attributes.debt_total, "0");
+});
+
+test("debts ignore blank, invalid and negative creditor amounts", () => {
+  const harness = createWorkerHarness({
+    repeating_creditors_valid_creditor_amount: "100",
+    repeating_creditors_blank_creditor_amount: "",
+    repeating_creditors_invalid_creditor_amount: "invalid",
+    repeating_creditors_infinite_creditor_amount: "Infinity",
+    repeating_creditors_negative_creditor_amount: "-10",
+  }, []);
+  harness.trigger("change:repeating_creditors:creditor_amount");
+  assert.equal(harness.writes[0].debt_total, "100");
+});
+
+test("pension clears the legacy success message on open without erasing other statuses", () => {
+  for (const status of ["Счёт пополнен.", "Поздравляем! Новые пенсионные пороги: 30 000 ог.", "Сумма пополнения должна быть положительной."]) {
+    const attributes = { pension_balance: "30000", pension_status: status };
+    const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+    harness.trigger("sheet:opened");
+    assert.equal(attributes.pension_status, status === "Счёт пополнен." ? "" : status);
+    assert.equal(attributes.pension_balance, "30000");
+  }
+});
+
 test("pension worker applies a validated deposit and clears the deposit field", () => {
   const harness = createWorkerHarness(
     { pension_balance: "15", pension_deposit: "5" },
@@ -110,7 +154,7 @@ test("pension worker applies a validated deposit and clears the deposit field", 
 
   assert.equal(harness.writes[0].pension_balance, "20");
   assert.equal(harness.writes[0].pension_deposit, "");
-  assert.equal(harness.writes[0].pension_status, "Счёт пополнен.");
+  assert.equal(harness.writes[0].pension_status, "");
 });
 
 test("pension worker preserves the balance when the deposit is invalid", () => {
@@ -123,6 +167,216 @@ test("pension worker preserves the balance when the deposit is invalid", () => {
 
   assert.equal(Object.hasOwn(harness.writes[0], "pension_balance"), false);
   assert.match(harness.writes[0].pension_status, /Сумма пополнения/);
+});
+
+test("pension milestones congratulate only newly crossed thresholds and persist their stage", () => {
+  const attributes = { pension_balance: "29999", pension_deposit: "60002" };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("clicked:pension_deposit");
+  assert.equal(attributes.pension_balance, "90001");
+  assert.match(attributes.pension_status, /Поздравляем/);
+  assert.match(attributes.pension_status.replace(/\s/g, ""), /30000,60000,90000/);
+  assert.match(attributes.pension_stage_status, /Отпусков заработано – 3\.\nДо следующего отпуска/);
+  assert.match(attributes.pension_stage_status.replace(/\s/g, ""), /29999ог/);
+  attributes.pension_deposit = "1";
+  harness.trigger("clicked:pension_deposit");
+  assert.equal(attributes.pension_status, "");
+  attributes.pension_balance = "239999";
+  attributes.pension_deposit = "1";
+  harness.trigger("clicked:pension_deposit");
+  assert.match(attributes.pension_status, /завершить контракт/);
+  harness.trigger("sheet:opened");
+  assert.match(attributes.pension_stage_status, /Поздравляем/);
+  attributes.pension_deposit = "30000";
+  harness.trigger("clicked:pension_deposit");
+  assert.equal(attributes.pension_status, "");
+  assert.match(attributes.pension_stage_status, /240 000/);
+});
+
+test("luck buttons work when the display-only counter has no stored value", () => {
+  for (const value of [undefined, null, ""]) {
+    for (const [action, expected] of [["luck_add", "2"], ["luck_spend", "0"]]) {
+      const attributes = { luck_points: value };
+      const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+      harness.trigger(`clicked:${action}`);
+      assert.equal(attributes.luck_points, expected);
+      assert.equal(attributes.luck_status, "");
+      harness.trigger("clicked:luck_add");
+      assert.equal(attributes.luck_points, String(Number(expected) + 1));
+    }
+  }
+});
+
+test("luck clears stale input-validation messages on open without resetting the count", () => {
+  const attributes = {
+    luck_points: "4",
+    luck_status: "Метки удачи: введите целое неотрицательное число.",
+  };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(attributes.luck_status, "");
+  assert.equal(attributes.luck_points, "4");
+});
+
+test("luck can be freely granted and spent without purchase or a negative balance", () => {
+  const attributes = { luck_points: "0", pocket_money: "12", pension_balance: "99" };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("clicked:luck_spend");
+  assert.equal(attributes.luck_points, "0");
+  assert.match(attributes.luck_status, /Нет меток/);
+  harness.trigger("clicked:luck_add");
+  harness.trigger("clicked:luck_add");
+  assert.equal(attributes.luck_points, "2");
+  harness.trigger("clicked:luck_spend");
+  assert.equal(attributes.luck_points, "1");
+  attributes.luck_points = "1.5";
+  harness.trigger("clicked:luck_add");
+  assert.equal(attributes.luck_points, "1.5");
+  assert.equal(attributes.luck_status, "Не удалось изменить число меток удачи.");
+  assert.equal(attributes.pocket_money, "12");
+  assert.equal(attributes.pension_balance, "99");
+});
+
+test("personal cards switch moves, contextual actions and wound capacity without resetting luck", () => {
+  const attributes = { specialty: "mechanic", past: "veteran", luck_points: "7", hiring_history: "tale" };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.match(attributes.special_move_title, /желудей/);
+  assert.match(attributes.special_move_description, /вахту/);
+  assert.match(attributes.past_action_1_label, /однополчанина/);
+  assert.equal(attributes.past_action_3_visible, "1");
+  assert.equal(attributes.past_action_4_visible, "0");
+  assert.equal(attributes.hiring_action_visible, "1");
+  attributes.past = "hard_worker";
+  attributes.past_roll_result = "old";
+  harness.trigger("change:past", { sourceAttribute: "past" });
+  assert.equal(attributes.past_action_1_visible, "0");
+  assert.equal(attributes.past_roll_result, "");
+  assert.equal(attributes.wounds_four, "1");
+  attributes.past = "artist";
+  harness.trigger("change:past");
+  assert.equal(attributes.wounds_two, "1");
+  assert.equal(attributes.wounds_four, "0");
+  attributes.past = "deprived";
+  harness.trigger("change:past");
+  assert.equal(attributes.wounds_two, "0");
+  attributes.wound_fragile = "1";
+  harness.trigger("change:wound_fragile");
+  assert.equal(attributes.wounds_two, "1");
+  attributes.past = "augur";
+  attributes.hiring_history = "letters";
+  harness.trigger("change:past");
+  assert.equal(attributes.hiring_action_visible, "0");
+  assert.equal(attributes.luck_points, "7");
+});
+
+test("additional trait descriptions load and change without migrating or overwriting original traits", () => {
+  const attributes = {
+    character_merit: "strong", character_flaw: "greedy",
+    repeating_merits_row1_trait: "agile", repeating_flaws_row2_trait: "injury",
+  };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.match(attributes.repeating_merits_row1_trait_description, /Ловкость/);
+  assert.match(attributes.repeating_flaws_row2_trait_description, /травма/);
+  attributes.repeating_merits_row1_trait = "";
+  harness.trigger("change:repeating_merits:trait");
+  assert.equal(attributes.repeating_merits_row1_trait_description, "");
+  assert.equal(attributes.character_merit, "strong");
+  assert.equal(attributes.character_flaw, "greedy");
+});
+
+test("randomize buttons use book distributions and update only the requested field or repeating row", () => {
+  const attributes = { past: "artist", character_merit: "strong", repeating_merits_row1_trait: "agile", repeating_merits_row2_trait: "taste" };
+  const harness = createWorkerHarness(attributes, [], {
+    applyWrites: true,
+    macroResults: [{ Выбор: { result: 3 } }, { Выбор: { result: 18 } }, { Выбор: { result: 9 } }],
+  });
+  harness.trigger("clicked:random_past");
+  assert.match(harness.rolls[0], /3d6/);
+  assert.equal(attributes.past, "veteran");
+  assert.match(attributes.past_rules, /однополчанина/);
+  harness.trigger("clicked:repeating_merits:random_trait", { sourceAttribute: "repeating_merits_row1_random_trait" });
+  assert.equal(attributes.repeating_merits_row1_trait, "empathetic");
+  assert.match(attributes.repeating_merits_row1_trait_description, /эмоций/);
+  assert.equal(attributes.repeating_merits_row2_trait, "taste");
+  assert.equal(attributes.character_merit, "strong");
+  harness.trigger("clicked:random_flaw");
+  assert.equal(attributes.character_flaw, "sex_addiction");
+});
+
+test("random names use two published-list choices and malformed rolls do not erase the existing name", () => {
+  const attributes = { character_name: "Old" };
+  const harness = createWorkerHarness(attributes, [], {
+    applyWrites: true,
+    macroResults: [
+      { Выбор: { result: 1 }, Фамилия: { result: 15 } },
+      { Выбор: { result: 99 }, Фамилия: { result: 1 } },
+    ],
+  });
+  harness.trigger("clicked:random_name");
+  assert.equal(attributes.character_name, "Абгейл Бррлин");
+  harness.trigger("clicked:random_name");
+  assert.equal(attributes.character_name, "Абгейл Бррлин");
+  assert.match(attributes.personal_random_status, /некорректный/);
+});
+
+test("random starting money honors deprived and slave backgrounds without touching savings", () => {
+  for (const [past, multiplier, amount] of [["deprived", 50, 700], ["slave", 0, 0], ["veteran", 10, 140]]) {
+    const attributes = { past, pocket_money: "4", pension_balance: "1" };
+    const harness = createWorkerHarness(attributes, [], { applyWrites: true, macroResults: { Сумма: { result: amount } } });
+    harness.trigger("clicked:random_money");
+    assert.match(harness.rolls[0], new RegExp(`4d6\\*${multiplier}`));
+    assert.equal(attributes.pocket_money, String(amount));
+    assert.equal(attributes.pension_balance, "1");
+  }
+});
+
+test("veteran search uses a collision rather than inventing a d6 friend-search chance", () => {
+  const harness = createWorkerHarness({ past: "veteran" }, []);
+  harness.trigger("clicked:past_action_1");
+  assert.match(harness.rolls[0], /4\+\?\{Дополнительные d6/);
+  assert.match(harness.rolls[0], /Осложнения/);
+  assert.match(harness.writes[0].past_roll_result, /Проверка отправлена/);
+});
+
+test("past d6 checks distinguish success and failure and old invisible actions cannot roll", () => {
+  for (const [roll, text] of [[1, /Товарищ просит/], [2, /не просит/]]) {
+    const attributes = { past: "veteran" };
+    const harness = createWorkerHarness(attributes, [], { applyWrites: true, macroResults: [{ Бросок: { result: roll } }, {}] });
+    harness.trigger("clicked:past_action_2");
+    assert.match(attributes.past_roll_result, text);
+    attributes.past = "hard_worker";
+    const rollCount = harness.rolls.length;
+    harness.trigger("clicked:past_action_2");
+    assert.equal(harness.rolls.length, rollCount);
+  }
+});
+
+test("gambler encounter rolls the indicated amounts and retains the combination instruction on six", () => {
+  const attributes = { past: "gambler", pocket_money: "75" };
+  const harness = createWorkerHarness(attributes, [], {
+    applyWrites: true,
+    macroResults: [{ Бросок: { result: 4 } }, { Сумма: { result: 4000 }, Громилы: { result: 7 } }, { Бросок: { result: 6 } }, {}],
+  });
+  harness.trigger("clicked:past_action_3");
+  assert.match(harness.rolls[1], /Сумма=\[\[1d6\*1000\]\]/);
+  assert.match(attributes.past_roll_result, /4000 ог/);
+  assert.match(attributes.past_roll_result, /7 опасно/);
+  assert.equal(attributes.pocket_money, "75");
+  harness.trigger("clicked:past_action_3");
+  assert.match(attributes.past_roll_result, /ещё два раза/);
+});
+
+test("hiring history rolls values without silently paying them into personal money", () => {
+  const attributes = { hiring_history: "pitiful", pocket_money: "7" };
+  const harness = createWorkerHarness(attributes, [], {
+    applyWrites: true, macroResults: [{ Бросок: { result: 1500 } }, {}],
+  });
+  harness.trigger("clicked:hiring_action");
+  assert.match(harness.rolls[0], /1d6\*500/);
+  assert.match(attributes.hiring_roll_result, /1500/);
+  assert.equal(attributes.pocket_money, "7");
 });
 
 test("sheet open populates the chosen card and ship-derived values", () => {

@@ -65,7 +65,8 @@
   display: inline-flex !important;
 }
 
-.charsheet .sheet-ship-damage label[class^="sheet-damage-"] {
+.charsheet .sheet-ship-damage label[class^="sheet-damage-"],
+.charsheet .sheet-character-wounds label {
   box-sizing: border-box;
   flex: 0 0 24px;
   height: 24px;
@@ -75,7 +76,8 @@
   width: 24px;
 }
 
-.charsheet .sheet-ship-damage label[class^="sheet-damage-"] input[type="checkbox"] {
+.charsheet .sheet-ship-damage label[class^="sheet-damage-"] input[type="checkbox"],
+.charsheet .sheet-character-wounds label input[type="checkbox"] {
   height: 24px;
   inset: 0;
   margin: 0;
@@ -86,7 +88,8 @@
   z-index: 1;
 }
 
-.charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-box {
+.charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-box,
+.charsheet .sheet-character-wounds label > .sheet-damage-box {
   align-items: center;
   background: #fff;
   border: 1px solid #6f3829;
@@ -102,10 +105,11 @@
   z-index: 2;
 }
 
-.charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-icon {
+.charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-icon,
+.charsheet .sheet-character-wounds label > .sheet-damage-icon {
   align-items: center;
   display: none !important;
-  font-size: 28px;
+  font-size: 26px;
   height: 20px;
   justify-content: center;
   left: 0;
@@ -117,15 +121,18 @@
   z-index: 3;
 }
 
-.charsheet .sheet-ship-damage input[type="checkbox"]:checked + .sheet-damage-box {
+.charsheet .sheet-ship-damage input[type="checkbox"]:checked + .sheet-damage-box,
+.charsheet .sheet-character-wounds input[type="checkbox"]:checked + .sheet-damage-box {
   color: #fff;
 }
 
-.charsheet .sheet-ship-damage input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast {
+.charsheet .sheet-ship-damage input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast,
+.charsheet .sheet-character-wounds input[type="checkbox"]:checked + .sheet-damage-box + .sheet-damage-blast {
   display: flex !important;
 }
 
-.charsheet .sheet-ship-damage input[type="checkbox"]:focus-visible + span {
+.charsheet .sheet-ship-damage input[type="checkbox"]:focus-visible + span,
+.charsheet .sheet-character-wounds input[type="checkbox"]:focus-visible + span {
   outline: 2px solid #242323;
   outline-offset: 2px;
 }
@@ -138,6 +145,13 @@
   flex: 0 0 auto;
   margin: 0 0.25rem 0 0;
   white-space: nowrap;
+}
+
+.charsheet .sheet-checklist-wounds span {
+  flex: 0 0 auto;
+  margin: 0 0.25rem 0 0;
+  white-space: nowrap;
+  font-size: 1.5em;
 }
 
 .charsheet .sheet-ship-damage .sheet-checklist-title {
@@ -194,7 +208,8 @@
   margin-bottom: 1em;
 }
 
-.charsheet .sheet-cooperative-tabs {
+.charsheet .sheet-cooperative-tabs,
+.charsheet .sheet-personal-tabs {
   align-items: center;
   flex-direction: row !important;
   flex-wrap: nowrap;
@@ -203,7 +218,8 @@
   width: max-content;
 }
 
-.charsheet .sheet-cooperative-tabs > .sheet-mode-option {
+.charsheet .sheet-cooperative-tabs > .sheet-mode-option,
+.charsheet .sheet-personal-tabs > .sheet-mode-option {
   align-items: center;
   display: flex !important;
   flex: 0 0 auto;
@@ -213,9 +229,80 @@
   width: fit-content !important;
 }
 
-.charsheet .sheet-cooperative-tab-panel {
+.charsheet .sheet-personal-tabs {
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.charsheet .sheet-cooperative-tab-panel,
+.charsheet .sheet-personal-tab-panel {
   display: none;
   min-height: 200px;
+}
+
+.charsheet .sheet-panel-personal:has(input[name="attr_personal_tab"][value="attributes"]:checked) .sheet-personal-attributes,
+.charsheet .sheet-panel-personal:has(input[name="attr_personal_tab"][value="items"]:checked) .sheet-personal-items,
+.charsheet .sheet-panel-personal:has(input[name="attr_personal_tab"][value="creditors"]:checked) .sheet-personal-creditors,
+.charsheet .sheet-panel-personal:has(input[name="attr_personal_tab"][value="illwishers"]:checked) .sheet-personal-illwishers,
+.charsheet .sheet-panel-personal:has(input[name="attr_personal_tab"][value="friends"]:checked) .sheet-personal-friends,
+.charsheet .sheet-panel-personal:has(input[name="attr_personal_tab"][value="notes"]:checked) .sheet-personal-notes {
+  display: block;
+}
+
+.charsheet .sheet-personal-table {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.charsheet .sheet-personal-table .sheet-record-header,
+.charsheet .sheet-personal-table .sheet-record-row {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 2px;
+  min-width: 32rem;
+}
+
+.charsheet .sheet-personal-items .sheet-record-header,
+.charsheet .sheet-personal-items .sheet-record-row {
+  grid-template-columns: minmax(0, 80fr) minmax(0, 20fr);
+}
+
+.charsheet .sheet-personal-creditors .sheet-record-header,
+.charsheet .sheet-personal-creditors .sheet-record-row {
+  grid-template-columns: repeat(2, minmax(0, 40fr)) minmax(0, 20fr);
+}
+
+.charsheet .sheet-personal-table .sheet-record-header {
+  color: #6f3829;
+  margin-bottom: 0.4rem;
+  padding: 0 1px;
+}
+
+.charsheet .sheet-personal-table .sheet-record-header > span {
+  border-bottom: 1px solid #9a806a;
+  font-weight: 400;
+  padding: 0.25rem 0.3rem;
+}
+
+.charsheet .sheet-personal-table fieldset {
+  border: 1px solid #9a806a;
+  box-sizing: border-box;
+  margin: 0;
+  min-width: 32rem;
+  padding: 0;
+  width: 100%;
+}
+
+.charsheet .sheet-personal-table .repitem + .repitem {
+  margin-top: 0.75rem;
+}
+
+.charsheet .sheet-personal-table .sheet-record-row input {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.3rem;
+  width: 100%;
 }
 
 .charsheet .sheet-panel-cooperative:has(input[name="attr_cooperative_tab"][value="attributes"]:checked) .sheet-cooperative-attributes,
@@ -373,6 +460,237 @@
   row-gap: 0.6rem;
 }
 
+.charsheet .sheet-personal-layout {
+  align-items: start;
+  column-gap: 2.4rem;
+  display: grid;
+  grid-template-columns: minmax(0, 67fr) minmax(0, 33fr);
+}
+
+.charsheet .sheet-personal-left,
+.charsheet .sheet-personal-right,
+.charsheet .sheet-personal-right > * {
+  min-width: 0;
+}
+
+.charsheet .sheet-personal-right {
+  overflow-wrap: anywhere;
+}
+
+.charsheet .sheet-personal-right .sheet-pension-controls {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.charsheet .sheet-personal-right .sheet-pension-controls input[type="number"] {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+}
+
+.charsheet .sheet-personal-right .sheet-field-inline {
+  align-items: flex-start;
+  flex-direction: column;
+  margin-right: 0;
+}
+
+.charsheet .sheet-app .sheet-personal-notes textarea {
+  height: 90vh;
+  min-height: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.charsheet .sheet-choice-row,
+.charsheet .sheet-personal-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.charsheet .sheet-choice-row > label {
+  flex: 1;
+  margin-right: 0;
+}
+
+.charsheet .sheet-choice-row input[type="text"],
+.charsheet .sheet-choice-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.charsheet .sheet-app .sheet-random-button {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  color: inherit;
+  flex: 0 0 auto;
+  font-size: 2.4rem;
+  line-height: 1;
+  margin: 0;
+  padding: 0.3rem 0.5rem;
+  position: relative;
+  text-shadow: none;
+  top: -0.2rem;
+  width: auto;
+}
+
+.charsheet .sheet-random-button > .sheet-control-tooltip {
+  left: auto;
+  right: 0;
+}
+
+.charsheet .sheet-reference-card {
+  border: 1px solid #9a806a;
+  border-radius: 0.35rem;
+  margin: 0.6rem 0;
+  padding: 0.8rem;
+}
+
+.charsheet .sheet-reference-card h4,
+.charsheet .sheet-reference-card p {
+  margin: 0.5rem 0 0.5rem;
+}
+
+.charsheet .sheet-reference-card summary {
+  cursor: pointer;
+}
+
+.charsheet .sheet-app .sheet-bargain-reference > summary,
+.charsheet .sheet-app .sheet-collision-panel > summary {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.charsheet .sheet-collision-panel > .sheet-inline-fields,
+.charsheet .sheet-bargain-reference > summary + p {
+  border-top: 1px solid #9a806a;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+}
+
+.charsheet .sheet-collision-panel .sheet-field-inline {
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.charsheet .sheet-collision-panel .sheet-field-inline input {
+  flex: 0 0 5em;
+  min-width: 0;
+  width: 5em;
+}
+
+.charsheet .sheet-luck-card {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.charsheet .sheet-luck-card h3 {
+  align-self: stretch;
+}
+
+.charsheet .sheet-luck-counter {
+  align-items: center;
+  border: 2px solid #9a806a;
+  border-radius: 50%;
+  box-sizing: border-box;
+  color: #6f3829;
+  display: flex;
+  font-size: 5rem;
+  font-weight: bold;
+  height: 1.8em;
+  justify-content: center;
+  line-height: 1;
+  position: relative;
+  width: 1.8em;
+}
+
+.charsheet .sheet-luck-counter > .sheet-control-tooltip {
+  left: auto;
+  right: 0;
+}
+
+.charsheet .sheet-luck-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.charsheet .sheet-luck-controls {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.charsheet .sheet-luck-card p {
+  margin: 0;
+  width: 100%;
+}
+
+.charsheet .sheet-personal-actions {
+  flex-wrap: wrap;
+}
+
+.charsheet .sheet-personal-actions > input + button {
+  display: none;
+}
+
+.charsheet .sheet-personal-actions > input:checked + button {
+  display: inline-block;
+}
+
+.charsheet .sheet-personal-result,
+.charsheet .sheet-pension-stage {
+  color: #6f3829;
+  font-weight: bold;
+}
+
+.charsheet .sheet-pension-stage {
+  white-space: pre-line;
+}
+
+.charsheet .sheet-panel-personal .repeating_merits,
+.charsheet .sheet-panel-personal .repeating_flaws {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.charsheet .sheet-character-wounds:has(input[name="attr_wounds_two"]:checked) .sheet-wound-3 {
+  display: none !important;
+}
+
+.charsheet .sheet-character-wounds:has(input[name="attr_wounds_four"]:checked) .sheet-wound-fourth {
+  display: inline-flex !important;
+}
+
+.charsheet .sheet-character-wounds:has(input[name="attr_wounds_two"]:checked) .sheet-wound-2:has(input:checked) .sheet-damage-skull,
+.charsheet .sheet-character-wounds:has(input[name="attr_wounds_four"]:checked) .sheet-wound-4:has(input:checked) .sheet-damage-skull,
+.charsheet .sheet-character-wounds:not(:has(input[name="attr_wounds_two"]:checked)):not(:has(input[name="attr_wounds_four"]:checked)) .sheet-wound-3:has(input:checked) .sheet-damage-skull {
+  display: flex !important;
+}
+
+.charsheet .sheet-character-wounds:has(input[name="attr_wounds_two"]:checked) .sheet-wound-2:has(input:checked) .sheet-damage-blast,
+.charsheet .sheet-character-wounds:has(input[name="attr_wounds_four"]:checked) .sheet-wound-4:has(input:checked) .sheet-damage-blast,
+.charsheet .sheet-character-wounds:not(:has(input[name="attr_wounds_two"]:checked)):not(:has(input[name="attr_wounds_four"]:checked)) .sheet-wound-3:has(input:checked) .sheet-damage-blast {
+  display: none !important;
+}
+
+.charsheet .sheet-fragile-option {
+  display: none;
+}
+
+.charsheet .sheet-app:has(select[name="attr_past"] option[value="deprived"]:checked) .sheet-fragile-option {
+  display: block;
+}
+
 .charsheet .sheet-cooperative-ship > .sheet-inline-fields {
   column-gap: 0.5rem;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -460,8 +778,17 @@
   min-width: 0;
 }
 
+.charsheet .sheet-card-description.sheet-standard-description {
+  font-size: 1em;
+}
+
 .charsheet .sheet-money-field {
   min-width: 0;
+}
+
+.charsheet .sheet-money-field input[name="attr_pocket_money"] {
+  min-width: 0;
+  width: 12.5em;
 }
 
 .charsheet .sheet-card-field .sheet-field-inline {
@@ -533,6 +860,14 @@
   width: calc(100% - 1rem);
 }
 
+.charsheet .sheet-app .sheet-big-dream textarea {
+  height: auto;
+  line-height: 1.4;
+  margin: 0;
+  min-height: 0;
+  width: 100%;
+}
+
 .charsheet .sheet-field {
   display: flex;
   margin: 0.5rem 0;
@@ -540,7 +875,7 @@
 
 .charsheet .sheet-card-description {
   color: #514638;
-  font-size: 0.9rem;
+  font-size: 1em;
   margin: 0.3rem 0 0.7rem;
 }
 
@@ -673,6 +1008,37 @@
 
 .charsheet .sheet-wounds label span {
   display: none;
+}
+
+.charsheet .sheet-wounds-block {
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.charsheet .sheet-character-wounds {
+  gap: 0.675rem;
+  min-height: 3.75rem;
+}
+
+.charsheet .sheet-character-wounds label {
+  flex: 0 0 45px;
+  height: 45px;
+  width: 45px;
+}
+
+.charsheet .sheet-character-wounds label input[type="checkbox"] {
+  height: 45px;
+  width: 45px;
+}
+
+.charsheet .sheet-character-wounds label > .sheet-damage-box,
+.charsheet .sheet-character-wounds label > .sheet-damage-icon {
+  height: 37.5px;
+  width: 37.5px;
+}
+
+.charsheet .sheet-character-wounds label > .sheet-damage-icon {
+  font-size: 36.5625px;
 }
 
 .charsheet .sheet-wound-fourth,
@@ -1020,13 +1386,16 @@
 
 .charsheet .sheet-travel-controls button:hover > .sheet-control-tooltip,
 .charsheet .sheet-travel-controls button:focus-visible > .sheet-control-tooltip,
+.charsheet .sheet-random-button:hover > .sheet-control-tooltip,
+.charsheet .sheet-random-button:focus-visible > .sheet-control-tooltip,
+.charsheet .sheet-luck-counter:hover > .sheet-control-tooltip,
+.charsheet .sheet-luck-counter:focus-visible > .sheet-control-tooltip,
 .charsheet .sheet-ship-name:hover > .sheet-control-tooltip,
 .charsheet .sheet-ship-name:focus-within > .sheet-control-tooltip {
   transition-delay: 1s;
   visibility: visible;
 }
 
-.charsheet .sheet-app:has(select[name="attr_past"] option[value="hard_worker"]:checked) .sheet-wound-fourth,
 .charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="1"]:checked) .sheet-stanine-3,
 .charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-stanine-3,
 .charsheet .sheet-app:has(select[name="attr_ship_class"] option[value="2"]:checked) .sheet-stanine-4,

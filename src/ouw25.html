@@ -7,69 +7,49 @@
   </div>
 
   <div class="sheet-panel sheet-panel-personal">
-    <div class="sheet-inline-fields">
-      <label class="sheet-field-inline">Имя-фамилия<input type="text" name="attr_character_name"></label>
+    <div class="sheet-mode-switch sheet-personal-tabs" role="group" aria-label="Раздел коммерсанта">
+      <label class="sheet-mode-option"><input type="radio" name="attr_personal_tab" value="attributes" checked><span>Атрибуты</span></label>
+      <label class="sheet-mode-option"><input type="radio" name="attr_personal_tab" value="items"><span>Личные вещи</span></label>
+      <label class="sheet-mode-option"><input type="radio" name="attr_personal_tab" value="friends"><span>Друзья</span></label>
+      <label class="sheet-mode-option"><input type="radio" name="attr_personal_tab" value="illwishers"><span>Враги</span></label>
+      <label class="sheet-mode-option"><input type="radio" name="attr_personal_tab" value="creditors"><span>Кредиторы</span></label>
+      <label class="sheet-mode-option"><input type="radio" name="attr_personal_tab" value="notes"><span>Заметки</span></label>
+    </div>
+    <div class="sheet-personal-tab-panel sheet-personal-attributes">
+    <div class="sheet-personal-layout">
+    <div class="sheet-personal-left sheet-inline-fields">
+      <div class="sheet-choice-row">
+        <label class="sheet-field-inline">Имя-фамилия: <input type="text" name="attr_character_name"></label>
+        <button class="sheet-random-button" type="action" name="act_random_name" aria-label="Случайные имя и фамилия">🎲<span class="sheet-control-tooltip" role="tooltip">Выбрать имя и фамилию равновероятно из опубликованного списка.</span></button>
+      </div>
       <div class="sheet-card-field">
-        <label class="sheet-field-inline">Специальность
-          <select name="attr_specialty">
+        <h3>Флотская специальность</h3>
+        <div class="sheet-choice-row">
+          <select name="attr_specialty" aria-label="Флотская специальность">
             <option value="quartermaster">Завхоз</option>
             <option value="navigator">Навигатор</option>
             <option value="medic">Медик</option>
             <option value="mechanic">Механик</option>
           </select>
-        </label>
-        <p class="sheet-card-description"><span name="attr_specialty_description"></span></p>
-      </div>
-      <div class="sheet-money-field">
-        <label class="sheet-field-inline sheet-wide-input">Карманные деньги, ог.
-          <input type="number" name="attr_pocket_money" min="0" step="1" inputmode="numeric">
-        </label>
-        <p class="sheet-field-status"><span name="attr_pocket_money_status"></span></p>
-      </div>
-      <div class="sheet-subpanel">
-        <h3>Пенсионный счёт</h3>
-        <div class="sheet-inline-fields sheet-pension-controls">
-          <label class="sheet-field-inline">Накоплено, ог.
-            <input type="number" name="attr_pension_balance" value="0" min="0" step="1" readonly>
-          </label>
-          <label class="sheet-field-inline">Сумма пополнения, ог.
-            <input type="number" name="attr_pension_deposit" min="1" step="1" inputmode="numeric">
-          </label>
-          <button type="action" name="act_pension_deposit">Пополнить</button>
+        <button class="sheet-random-button" type="action" name="act_random_specialty" aria-label="Случайная специальность">🎲<span class="sheet-control-tooltip" role="tooltip">Выбрать одну из четырёх специальностей.</span></button>
         </div>
-        <p class="sheet-field-status"><span name="attr_pension_status"></span></p>
+        <p class="sheet-card-description sheet-standard-description"><span name="attr_specialty_description"></span></p>
+        <div class="sheet-reference-card">
+          <h4>Спецход: <span name="attr_special_move_title"></span></h4>
+          <p><span name="attr_special_move_description"></span></p>
+        </div>
       </div>
-      <label class="sheet-field-inline sheet-full-width">Большая мечта<input type="text" name="attr_big_dream"></label>
-    </div>
-
-    <div class="sheet-inline-fields">
-      <div class="sheet-card-field">
-        <label class="sheet-field-inline">Значимое прошлое
-          <select name="attr_past">
-          <option value="">— Выберите —</option>
-          <option value="veteran">Ветеран</option>
-          <option value="seeker">Ищущий</option>
-          <option value="colonist">Колонист</option>
-          <option value="deprived">Обделённый</option>
-          <option value="savage">Дикарь</option>
-          <option value="reconstructed">Перекроенный</option>
-          <option value="remnant">Останец</option>
-          <option value="augur">Авгур</option>
-          <option value="gambler">Игрок</option>
-          <option value="champion">Чемпион</option>
-          <option value="writer">Щелкопёр</option>
-          <option value="artist">Артист</option>
-          <option value="hard_worker">Трудяга</option>
-          <option value="sleeper">Спящий</option>
-          <option value="defect">Дефект</option>
-          <option value="slave">Невольник</option>
-          </select>
-        </label>
-        <p class="sheet-card-description"><span name="attr_past_description"></span></p>
+      <div class="sheet-card-field sheet-full-width sheet-big-dream">
+        <div class="sheet-choice-row">
+        <h3>Большая мечта</h3>
+        <button class="sheet-random-button" type="action" name="act_random_dream" aria-label="Случайная большая мечта">🎲<span class="sheet-control-tooltip" role="tooltip">Выбрать равновероятно одну из десяти опубликованных мечт. Можно написать свою.</span></button>
+        </div>
+        <textarea name="attr_big_dream" rows="2" aria-label=""></textarea>
       </div>
       <div class="sheet-card-field">
-        <label class="sheet-field-inline">Достоинство
-          <select name="attr_character_merit">
+        <h3>Достоинства</h3>
+        <div class="sheet-choice-row">
+          <select name="attr_character_merit" aria-label="Достоинство">
           <option value="">— Выберите —</option>
           <option value="stress_resistant">Высокая стрессоустойчивость</option>
           <option value="erudite">Выдающаяся эрудиция</option>
@@ -88,12 +68,39 @@
           <option value="intuitive">Развитая интуиция</option>
           <option value="empathetic">Отточенная эмпатия</option>
           </select>
-        </label>
+        <button class="sheet-random-button" type="action" name="act_random_merit" aria-label="Случайное достоинство">🎲<span class="sheet-control-tooltip" role="tooltip">Выбрать достоинство броском 3d6.</span></button>
+        </div>
         <p class="sheet-card-description"><span name="attr_merit_description"></span></p>
+        <fieldset class="repeating_merits">
+          <div class="sheet-choice-row">
+              <select name="attr_trait" aria-label="Достоинство">
+                <option value="">— Выберите —</option>
+                <option value="stress_resistant">Высокая стрессоустойчивость</option>
+                <option value="erudite">Выдающаяся эрудиция</option>
+                <option value="charismatic">Подкупающая харизма</option>
+                <option value="connections">Обширные связи</option>
+                <option value="famous">Заслуженная известность</option>
+                <option value="agile">Сверхъестественная ловкость</option>
+                <option value="strong">Невероятная сила</option>
+                <option value="taste">Безупречный вкус</option>
+                <option value="manners">Галантные манеры</option>
+                <option value="trader">Торговая хватка</option>
+                <option value="prepared">Чрезвычайная запасливость</option>
+                <option value="buoyant">Положительная плавучесть</option>
+                <option value="stealthy">Инстинктивная скрытность</option>
+                <option value="enduring">Выдающаяся выносливость</option>
+                <option value="intuitive">Развитая интуиция</option>
+                <option value="empathetic">Отточенная эмпатия</option>
+              </select>
+            <button class="sheet-random-button" type="action" name="act_random_trait" aria-label="Случайное дополнительное достоинство">🎲<span class="sheet-control-tooltip" role="tooltip">Заменить достоинство этой строки результатом 3d6.</span></button>
+          </div>
+          <p class="sheet-card-description"><span name="attr_trait_description"></span></p>
+        </fieldset>
       </div>
       <div class="sheet-card-field">
-        <label class="sheet-field-inline">Недостаток
-          <select name="attr_character_flaw">
+        <h3>Недостатки</h3>
+        <div class="sheet-choice-row">
+          <select name="attr_character_flaw" aria-label="Недостаток">
           <option value="">— Выберите —</option>
           <option value="addiction">Химическая зависимость</option>
           <option value="cruel">Патологическая жестокость</option>
@@ -112,12 +119,80 @@
           <option value="kleptomaniac">Бессознательная клептомания</option>
           <option value="notoriety">Нежелательная известность</option>
           </select>
-        </label>
+        <button class="sheet-random-button" type="action" name="act_random_flaw" aria-label="Случайный недостаток">🎲<span class="sheet-control-tooltip" role="tooltip">Выбрать недостаток броском 3d6.</span></button>
+        </div>
         <p class="sheet-card-description"><span name="attr_flaw_description"></span></p>
+        <fieldset class="repeating_flaws">
+          <div class="sheet-choice-row">
+              <select name="attr_trait" aria-label="Недостаток">
+                <option value="">— Выберите —</option>
+                <option value="addiction">Химическая зависимость</option>
+                <option value="cruel">Патологическая жестокость</option>
+                <option value="apathetic">Хроническая апатия</option>
+                <option value="schizophrenia">Запущенная шизофрения</option>
+                <option value="paranoid">Всепроникающая паранойя</option>
+                <option value="greedy">Ненасытная жадность</option>
+                <option value="sex_addiction">Зудящий сексоголизм</option>
+                <option value="distracted">Тотальная рассеянность</option>
+                <option value="overconfident">Агрессивная самоуверенность</option>
+                <option value="unhealthy">Подорванное здоровье</option>
+                <option value="injury">Неприятная травма</option>
+                <option value="forgetful">Регулярная забывчивость</option>
+                <option value="insensitive">Вопиющая нечуткость</option>
+                <option value="indecisive">Фатальная нерешительность</option>
+                <option value="kleptomaniac">Бессознательная клептомания</option>
+                <option value="notoriety">Нежелательная известность</option>
+              </select>
+            <button class="sheet-random-button" type="action" name="act_random_trait" aria-label="Случайный дополнительный недостаток">🎲<span class="sheet-control-tooltip" role="tooltip">Заменить недостаток этой строки результатом 3d6.</span></button>
+          </div>
+          <p class="sheet-card-description"><span name="attr_trait_description"></span></p>
+        </fieldset>
       </div>
       <div class="sheet-card-field">
-        <label class="sheet-field-inline">История найма
-          <select name="attr_hiring_history">
+        <h3>Значимое прошлое</h3>
+        <div class="sheet-choice-row">
+            <select name="attr_past" aria-label="Значимое прошлое">
+              <option value="">— Выберите —</option>
+              <option value="veteran">Ветеран</option>
+              <option value="seeker">Ищущий</option>
+              <option value="colonist">Колонист</option>
+              <option value="deprived">Обделённый</option>
+              <option value="savage">Дикарь</option>
+              <option value="reconstructed">Перекроенный</option>
+              <option value="remnant">Останец</option>
+              <option value="augur">Авгур</option>
+              <option value="gambler">Игрок</option>
+              <option value="champion">Чемпион</option>
+              <option value="writer">Щелкопёр</option>
+              <option value="artist">Артист</option>
+              <option value="hard_worker">Трудяга</option>
+              <option value="sleeper">Спящий</option>
+              <option value="defect">Дефект</option>
+              <option value="slave">Невольник</option>
+            </select>
+          <button class="sheet-random-button" type="action" name="act_random_past" aria-label="Случайное прошлое">🎲<span class="sheet-control-tooltip" role="tooltip">Выбрать значимое прошлое броском 3d6.</span></button>
+        </div>
+        <p class="sheet-card-description sheet-standard-description"><span name="attr_past_description"></span></p>
+        <div class="sheet-reference-card">
+          <h4>Механики прошлого</h4>
+          <p><span name="attr_past_rules"></span></p>
+          <div class="sheet-personal-actions">
+            <input class="sheet-hidden-state" type="checkbox" name="attr_past_action_1_visible" value="1">
+            <button type="action" name="act_past_action_1"><span name="attr_past_action_1_label"></span></button>
+            <input class="sheet-hidden-state" type="checkbox" name="attr_past_action_2_visible" value="1">
+            <button type="action" name="act_past_action_2"><span name="attr_past_action_2_label"></span></button>
+            <input class="sheet-hidden-state" type="checkbox" name="attr_past_action_3_visible" value="1">
+            <button type="action" name="act_past_action_3"><span name="attr_past_action_3_label"></span></button>
+            <input class="sheet-hidden-state" type="checkbox" name="attr_past_action_4_visible" value="1">
+            <button type="action" name="act_past_action_4"><span name="attr_past_action_4_label"></span></button>
+          </div>
+          <p class="sheet-personal-result" role="status"><span name="attr_past_roll_result"></span></p>
+        </div>
+      </div>
+      <div class="sheet-card-field">
+        <h3>История найма</h3>
+        <div class="sheet-choice-row">
+          <select name="attr_hiring_history" aria-label="История найма">
           <option value="">— Выберите —</option>
           <option value="dance">Станцевал джигу — экономия на салонах</option>
           <option value="tale">Рассказал чудовищную байку — продажная история</option>
@@ -131,31 +206,161 @@
           <option value="ate">Съел пресс-папье — устойчивость к ядам</option>
           <option value="charming">Был неотразим — шутки и гипноз</option>
           </select>
-        </label>
-        <p class="sheet-card-description"><span name="attr_hiring_description"></span></p>
+        <button class="sheet-random-button" type="action" name="act_random_hiring" aria-label="Случайная история найма">🎲<span class="sheet-control-tooltip" role="tooltip">Выбрать равновероятно одну из одиннадцати историй найма.</span></button>
+        </div>
+        <p class="sheet-card-description sheet-standard-description"><span name="attr_hiring_description"></span></p>
+        <div class="sheet-personal-actions">
+          <input class="sheet-hidden-state" type="checkbox" name="attr_hiring_action_visible" value="1">
+          <button type="action" name="act_hiring_action"><span name="attr_hiring_action_label"></span></button>
+        </div>
+        <p class="sheet-personal-result" role="status"><span name="attr_hiring_roll_result"></span></p>
       </div>
+      <p class="sheet-field-status"><span name="attr_personal_random_status"></span></p>
     </div>
+    <div class="sheet-personal-right sheet-inline-fields">
+      <div class="sheet-stat">
 
-    <div class="sheet-wounds">
-      <span class="sheet-checklist-title">Раны:</span>
-      <label><input type="checkbox" name="attr_wound_1" value="1"><span>1</span></label>
-      <label><input type="checkbox" name="attr_wound_2" value="1"><span>2</span></label>
-      <label><input type="checkbox" name="attr_wound_3" value="1"><span>3</span></label>
-      <label class="sheet-wound-fourth"><input type="checkbox" name="attr_wound_4" value="1"><span>4</span></label>
+        <h3>Долги</h3>
+        <div class="sheet-stat-value"><span name="attr_debt_total">0</span> ог.</div>
+      </div>
+      <div class="sheet-money-field">
+<div class="sheet-subpanel">
+        <h3>Карманные деньги</h3>
+        <div class="sheet-choice-row">
+          <input type="number" name="attr_pocket_money" min="0" step="1" inputmode="numeric" aria-label="Карманные деньги">
+          <span>ог.</span>
+          <button class="sheet-random-button" type="action" name="act_random_money" aria-label="Случайные стартовые деньги">🎲<span class="sheet-control-tooltip" role="tooltip">Заменить карманные деньги стартовым броском 4d6 × 10. У Обделённого — впятеро больше, у Невольника — ноль.</span></button>
+        </div>
+        <p class="sheet-field-status"><span name="attr_pocket_money_status"></span></p>
+      </div>
+      </div>
+      <div class="sheet-subpanel">
+        <h3>Пенсионный счёт</h3>
+        <div class="sheet-stat-value"><span name="attr_pension_balance">0</span> ог.</div>
+        <div class="sheet-inline-fields sheet-pension-controls">
+          <input type="number" name="attr_pension_deposit" min="1" step="1" inputmode="numeric" aria-label="Сумма пополнения, ог.">
+          <button type="action" name="act_pension_deposit">Пополнить</button>
+        </div>
+        <p class="sheet-field-status"><span name="attr_pension_status"></span></p>
+        <p class="sheet-pension-stage" role="status"><span name="attr_pension_stage_status"></span></p>
+        <details class="sheet-reference-card">
+          <summary>📗 Пенсия и развитие ▼ </summary>
+          <p>Пополнение счёта доступно в Олъме, Н’те Поа и Салайфе. Деньги нельзя снять. Каждые 30 000 ог. дают право на отпуск длительностью 16 окт (128 вахт), в течение которого вы можете приобрести достоинство или избавиться от недостатка. Каждое третье достоинство приходит вместе с новым недостатком. На 240 000 ог. можно завершить контракт.</p>
+        </details>
+      </div>
+      <div class="sheet-luck-card">
+        <h3>Метки удачи</h3>
+        <input type="hidden" name="attr_luck_points" value="1">
+        <div class="sheet-luck-controls">
+          <div class="sheet-luck-counter" tabindex="0">
+            <span name="attr_luck_points">1</span>
+            <span class="sheet-control-tooltip" role="tooltip">Одна метка — гарантированный успех или предотвращённая рана. Получение и расход отмечаются вручную.</span>
+          </div>
+          <div class="sheet-luck-actions">
+            <button type="action" name="act_luck_add" aria-label="Добавить одну метку удачи">+</button>
+            <button type="action" name="act_luck_spend" aria-label="Убрать одну метку удачи">−</button>
+          </div>
+        </div>
+        <p class="sheet-field-status"><span name="attr_luck_status"></span></p>
+      </div>
+      <div class="sheet-wounds-block">
+    <h3>Раны</h3>
+    <div class="sheet-wounds sheet-character-wounds">
+      <input class="sheet-hidden-state" type="checkbox" name="attr_wounds_two" value="1">
+      <input class="sheet-hidden-state" type="checkbox" name="attr_wounds_four" value="1">
+      <label class="sheet-wound-1"><input type="checkbox" name="attr_wound_1" value="1" aria-label="Рана 1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">🩸</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
+      <label class="sheet-wound-2"><input type="checkbox" name="attr_wound_2" value="1" aria-label="Рана 2"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">🩸</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
+      <label class="sheet-wound-3"><input type="checkbox" name="attr_wound_3" value="1" aria-label="Рана 3"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">🩸</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
+      <label class="sheet-wound-4 sheet-wound-fourth"><input type="checkbox" name="attr_wound_4" value="1" aria-label="Рана 4"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">🩸</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
     </div>
+    <label class="sheet-fragile-option"><input type="checkbox" name="attr_wound_fragile" value="1">Обделённый: выбрана малохольность (смертельна вторая рана)</label>
+      </div>
 
-    <label class="sheet-field">Личные вещи<textarea name="attr_personal_items"></textarea></label>
-  </div>
-
-  <div class="sheet-panel sheet-panel-personal sheet-collision-panel">
-    <h3>Collision Engine: проверка удачи</h3>
+      <h3>Инструменты</h3>
+      <details class="sheet-reference-card sheet-bargain-reference">
+        <summary>🧮 Драматический торг ▼</summary>
+        <p>Согласуйте цель, ставки и риски. Без броска: частичный успех стоит 1 пункт, полный — 2. Каждое осложнение добавляет 2 пункта к цене; каждые 4 преимущества снимают одно осложнение.</p>
+        <p>За 1 пункт: 12 преимуществ, окта подготовки, +8 смуты или 3 000 ог. × общее число достоинств и недостатков представителя. Плату можно сочетать; смуту от торга нельзя сбросить до конца коллизии.</p>
+        <p>Возможна плата долгом или отношениями: новый злопыхатель даёт 3 пункта, потеря ценного союзника — 4. Детали согласуйте с группой. Принять последствия вместо борьбы — получить метку удачи каждому пострадавшему протагонисту.</p>
+      </details>
+  <details class="sheet-subpanel sheet-reference-card sheet-collision-panel">
+    <summary>😰 Проверка (не)удачи ▼</summary>
     <div class="sheet-inline-fields">
-      <label class="sheet-field-inline">Кости d6<input type="number" name="attr_ce_dice_count" min="4" step="1" value="4"></label>
-      <label class="sheet-field-inline">Вычет шестёрок<input type="number" name="attr_ce_pre_deduction" min="0" step="1" value="0"></label>
-      <button type="action" name="act_roll_collision">Бросить проверку</button>
+      <label class="sheet-field-inline">КУБИКИ<input type="number" name="attr_ce_dice_count" min="4" step="1" value="4"></label>
+      <label class="sheet-field-inline">ОСЛОЖНЕНИЯ<input type="number" name="attr_ce_pre_deduction" min="0" step="1" value="0"></label>
+      <button type="action" name="act_roll_collision">Сделать проверку</button>
     </div>
     <p>Последняя проверка: <strong><span name="attr_ce_status">Ожидает броска.</span></strong></p>
     <p>Шестёрок выпало: <span name="attr_ce_raw_sixes"></span>; осталось после вычета: <span name="attr_ce_remaining_sixes"></span>.</p>
+  </details>
+    </div>
+  </div>
+    </div>
+  <div class="sheet-personal-tab-panel sheet-personal-notes">
+    <textarea name="attr_character_notes" aria-label="Заметки коммерсанта"></textarea>
+  </div>
+  <div class="sheet-personal-tab-panel sheet-personal-items">
+    <div class="sheet-personal-table" role="table" aria-label="Личные вещи">
+      <div class="sheet-record-header" role="row">
+        <span role="columnheader">Описание</span>
+        <span role="columnheader">Стоимость</span>
+      </div>
+      <fieldset class="repeating_personalitems" role="rowgroup">
+        <div class="sheet-record-row" role="row">
+          <input type="text" name="attr_personal_item_description" aria-label="Описание">
+          <input type="number" name="attr_personal_item_cost" min="0" step="1" aria-label="Стоимость">
+        </div>
+      </fieldset>
+    </div>
+  </div>
+  <div class="sheet-personal-tab-panel sheet-personal-creditors">
+    <div class="sheet-personal-table" role="table" aria-label="Кредиторы">
+      <div class="sheet-record-header" role="row">
+        <span role="columnheader">Кто</span>
+        <span role="columnheader">Где</span>
+        <span role="columnheader">Сумма</span>
+      </div>
+      <fieldset class="repeating_creditors" role="rowgroup">
+        <div class="sheet-record-row" role="row">
+          <input type="text" name="attr_creditor_who" aria-label="Кто">
+          <input type="text" name="attr_creditor_where" aria-label="Где">
+          <input type="number" name="attr_creditor_amount" min="0" step="1" aria-label="Сумма">
+        </div>
+      </fieldset>
+    </div>
+  </div>
+  <div class="sheet-personal-tab-panel sheet-personal-illwishers">
+    <div class="sheet-personal-table" role="table" aria-label="Враги">
+      <div class="sheet-record-header" role="row">
+        <span role="columnheader">Кто</span>
+        <span role="columnheader">Где</span>
+        <span role="columnheader">Повод</span>
+      </div>
+      <fieldset class="repeating_illwishers" role="rowgroup">
+        <div class="sheet-record-row" role="row">
+          <input type="text" name="attr_illwisher_who" aria-label="Кто">
+          <input type="text" name="attr_illwisher_where" aria-label="Где">
+          <input type="text" name="attr_illwisher_reason" aria-label="Повод">
+        </div>
+      </fieldset>
+    </div>
+  </div>
+  <div class="sheet-personal-tab-panel sheet-personal-friends">
+    <div class="sheet-personal-table" role="table" aria-label="Друзья">
+      <div class="sheet-record-header" role="row">
+        <span role="columnheader">Кто</span>
+        <span role="columnheader">Где</span>
+        <span role="columnheader">Повод</span>
+      </div>
+      <fieldset class="repeating_friends" role="rowgroup">
+        <div class="sheet-record-row" role="row">
+          <input type="text" name="attr_friend_who" aria-label="Кто">
+          <input type="text" name="attr_friend_where" aria-label="Где">
+          <input type="text" name="attr_friend_reason" aria-label="Повод">
+        </div>
+      </fieldset>
+    </div>
+  </div>
   </div>
 
   <div class="sheet-panel sheet-panel-cooperative">

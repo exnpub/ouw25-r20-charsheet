@@ -49,7 +49,7 @@ test("build contains the two sheet modes and all character/cooperative blocks", 
   assert.match(html, /aria-label="Недостаток 1"/);
   assert.doesNotMatch(html, /Достоинство судна [1-4]|Недостаток судна [1-4]/);
   assert.match(html, /class="sheet-field-inline sheet-wide-input">Оперативный бюджет/);
-  assert.match(html, /class="sheet-panel sheet-panel-personal sheet-collision-panel"/);
+  assert.match(html, /class="sheet-subpanel sheet-collision-panel"/);
   assert.doesNotMatch(html, /<div class="sheet-stat"><span>Прочность<\/span>/);
   assert.doesNotMatch(html, /Планирование рейса|Журнал кооператива/);
 });
@@ -67,6 +67,73 @@ test("cooperative attributes stack budget, reputation and memories beside notes"
   assert.match(css, /\.sheet-cooperative-budget\s*\{[^}]*flex-direction:\s*row;/s);
   assert.match(css, /\.sheet-cooperative-notes-column textarea\s*\{[^}]*height:\s*300px;[^}]*width:\s*100%;/s);
   assert.match(css, /\.sheet-cooperative-cards\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/s);
+});
+
+test("merchant layout puts primary fields left and resources, notes and collision right", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  const left = html.split('class="sheet-personal-left sheet-inline-fields"')[1]
+    .split('class="sheet-personal-right sheet-inline-fields"')[0];
+  const right = html.split('class="sheet-personal-right sheet-inline-fields"')[1]
+    .split('class="sheet-personal-tab-panel sheet-personal-items"')[0];
+  assert.match(left, /attr_character_name[\s\S]*attr_specialty[\s\S]*attr_big_dream[\s\S]*attr_character_merit[\s\S]*attr_character_flaw[\s\S]*attr_pocket_money[\s\S]*attr_past[\s\S]*attr_hiring_history/);
+  assert.match(right, /attr_pension_balance[\s\S]*attr_luck_points[\s\S]*attr_wound_1[\s\S]*attr_character_notes[\s\S]*sheet-bargain-reference[\s\S]*attr_ce_dice_count/);
+  assert.doesNotMatch(left, /name="attr_(?:luck_points|wound_1|pension_balance|ce_dice_count)"/);
+  assert.doesNotMatch(right, /name="attr_(?:character_name|character_merit|past|personal_items)"/);
+  assert.match(css, /\.sheet-personal-layout\s*\{[^}]*grid-template-columns:\s*minmax\(0, 67fr\) minmax\(0, 33fr\)/s);
+});
+
+test("merchant tabs provide repeating personal tables and retain legacy item notes", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  const tabs = html.match(/class="sheet-mode-switch sheet-personal-tabs"[\s\S]*?<\/div>/)?.[0];
+  assert.ok(tabs);
+  assert.deepEqual(
+    [...tabs.matchAll(/name="attr_personal_tab" value="([^"]+)"/g)].map(([, value]) => value),
+    ["attributes", "items", "friends", "illwishers", "creditors", "notes"],
+  );
+  for (const [tab, section, fields] of [
+    ["items", "personalitems", [["personal_item_description", "text", "Описание"], ["personal_item_cost", "number", "Стоимость"]]],
+    ["creditors", "creditors", [["creditor_who", "text", "Кто"], ["creditor_where", "text", "Где"], ["creditor_amount", "number", "Сумма"]]],
+    ["illwishers", "illwishers", [["illwisher_who", "text", "Кто"], ["illwisher_where", "text", "Где"], ["illwisher_reason", "text", "Повод"]]],
+    ["friends", "friends", [["friend_who", "text", "Кто"], ["friend_where", "text", "Где"], ["friend_reason", "text", "Повод"]]],
+  ]) {
+    assert.match(html, new RegExp(`class="sheet-personal-tab-panel sheet-personal-${tab}"`));
+    const body = html.match(new RegExp(`<fieldset class="repeating_${section}" role="rowgroup">([\\s\\S]*?)<\\/fieldset>`))?.[1];
+    assert.ok(body);
+    for (const [field, type, label] of fields) {
+      assert.match(body, new RegExp(`type="${type}" name="attr_${field}"[^>]*aria-label="${label}"`));
+    }
+    assert.match(css, new RegExp(`value="${tab}"\\]:checked\\) \\.sheet-personal-${tab}`));
+  }
+  assert.match(css, /\.sheet-personal-items \.sheet-record-row\s*\{[^}]*grid-template-columns:\s*minmax\(0, 80fr\) minmax\(0, 20fr\)/s);
+  const items = html.split('class="sheet-personal-tab-panel sheet-personal-items"')[1]
+    .split('class="sheet-personal-tab-panel sheet-personal-creditors"')[0];
+  assert.match(items, /name="attr_personal_items"/);
+  assert.equal((html.match(/name="attr_personal_items"/g) || []).length, 1);
+});
+
+test("merchant exposes simple luck and wound controls, pension stages and contextual references", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  assert.match(html, /class="sheet-luck-card"/);
+  assert.match(html, /<span name="attr_luck_points">1<\/span>/);
+  assert.match(html, /<input type="hidden" name="attr_luck_points" value="1">/);
+  assert.doesNotMatch(html, /<input type="number" name="attr_luck_points"/);
+  assert.match(html, /name="act_luck_add"/);
+  assert.match(html, /name="act_luck_spend"/);
+  assert.doesNotMatch(html, /name="act_(?:buy_luck|luck_buy|create_character|character_wizard)"/);
+  assert.match(html, /name="attr_pension_stage_status"/);
+  assert.match(html, /name="attr_special_move_description"/);
+  assert.match(html, /name="attr_past_rules"/);
+  assert.match(html, /name="act_past_action_3"/);
+  assert.match(html, /class="sheet-wounds sheet-character-wounds"/);
+  assert.match(html, /name="attr_wound_1"[^>]*><span class="sheet-damage-box"><\/span><span class="sheet-damage-icon sheet-damage-blast">💥/);
+  for (const section of ["merits", "flaws"]) {
+    assert.match(html, new RegExp(`class="repeating_${section}"`));
+  }
+  for (const field of ["name", "specialty", "past", "merit", "flaw", "hiring", "dream", "money"]) {
+    assert.match(html, new RegExp(`name="act_random_${field}"`));
+  }
 });
 
 test("cooperative contacts tab precedes contracts and has four repeating columns", () => {
@@ -128,10 +195,10 @@ test("build contains the CSS brand placeholder and guarded pension deposit contr
   assert.match(css, /\.sheet-cooperative-attributes-layout\s*\{[^}]*column-gap:\s*1\.2rem/s);
   assert.match(css, /\.sheet-cooperative-contracts \.sheet-inline-fields\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/s);
   assert.match(css, /\.repeating_contracts \.repitem \+ \.repitem\s*\{[^}]*margin-top:\s*0\.75rem/s);
-  assert.match(css, /\.sheet-cooperative-tab-panel\s*\{[^}]*min-height:\s*200px/s);
+  assert.match(css, /\.sheet-cooperative-tab-panel[^{}]*\{[^}]*min-height:\s*200px/s);
   assert.match(css, /\.sheet-app textarea\s*\{[^}]*height:\s*60px/s);
   assert.match(css, /\.sheet-app textarea\s*\{[^}]*margin:\s*0\.5rem/s);
-  assert.match(css, /\.sheet-cooperative-tabs > \.sheet-mode-option\s*\{[^}]*width:\s*fit-content !important/s);
+  assert.match(css, /\.sheet-cooperative-tabs > \.sheet-mode-option[^{}]*\{[^}]*width:\s*fit-content !important/s);
   assert.match(css, /\.sheet-ship-stats\s*\{[^}]*grid-column:\s*1 \/ -1;[^}]*grid-template-columns:\s*repeat\(5/s);
   assert.match(css, /\.sheet-ship-resources\s*\{[^}]*grid-column:\s*1 \/ -1;[^}]*grid-template-columns:\s*repeat\(4/s);
   assert.match(css, /\.sheet-ship-resources\s*\{[^}]*column-gap:\s*15px/s);
@@ -157,10 +224,10 @@ test("ship damage checklist has a visible title and base checkboxes", () => {
   }
   assert.match(css, /\.charsheet \.sheet-app \.sheet-ship-damage\s*\{[^}]*display:\s*flex !important/s);
   assert.match(css, /\.charsheet \.sheet-app \.sheet-ship-damage \.sheet-damage-1,[\s\S]*?\.sheet-damage-3\s*\{[^}]*display:\s*inline-flex !important/s);
-  assert.match(css, /\.charsheet \.sheet-ship-damage label\[class\^="sheet-damage-"\] input\[type="checkbox"\]\s*\{[^}]*height:\s*24px;[^}]*opacity:\s*0;[^}]*width:\s*24px/s);
+  assert.match(css, /\.charsheet \.sheet-ship-damage label\[class\^="sheet-damage-"\] input\[type="checkbox"\][^{}]*\{[^}]*height:\s*24px;[^}]*opacity:\s*0;[^}]*width:\s*24px/s);
   assert.match(html, /attr_ship_damage_1" value="1"><span class="sheet-damage-box"><\/span><span class="sheet-damage-icon sheet-damage-blast">💥<\/span><span class="sheet-damage-icon sheet-damage-skull">💀<\/span>/);
-  assert.match(css, /\.charsheet \.sheet-ship-damage label\[class\^="sheet-damage-"\] > \.sheet-damage-box\s*\{[^}]*display:\s*flex !important;[^}]*height:\s*24px;[^}]*width:\s*24px/s);
-  assert.match(css, /\.charsheet \.sheet-ship-damage input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast\s*\{[^}]*display:\s*flex !important/s);
+  assert.match(css, /\.charsheet \.sheet-ship-damage label\[class\^="sheet-damage-"\] > \.sheet-damage-box[^{}]*\{[^}]*display:\s*flex !important;[^}]*height:\s*24px;[^}]*width:\s*24px/s);
+  assert.match(css, /\.charsheet \.sheet-ship-damage input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast[^{}]*\{[^}]*display:\s*flex !important/s);
   assert.match(css, /option\[value="0"\]:checked\)[\s\S]*?\.sheet-damage-3 input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast \+ \.sheet-damage-skull/);
   assert.match(css, /option\[value="6"\]:checked\) \.sheet-damage-11 input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast \+ \.sheet-damage-skull/);
   assert.match(css, /\.charsheet \.sheet-ship-damage \.sheet-checklist-title\s*\{[^}]*font-size:\s*1\.5em/s);

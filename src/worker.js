@@ -39,14 +39,192 @@
     });
   }
 
-  function updatePersonal() {
-    const names = PERSONAL_SELECTIONS.map(([attribute]) => attribute);
+  function updatePersonal(eventInfo) {
+    const names = [...PERSONAL_SELECTIONS.map(([attribute]) => attribute), "wound_fragile"];
     getAttrs(names, function (values) {
       const updates = {};
       PERSONAL_SELECTIONS.forEach(([attribute, output, category]) => {
         updates[output] = Ouw25Rules.describe(category, values[attribute]);
       });
+      const move = Ouw25Rules.SPECIAL_MOVES[values.specialty];
+      updates.special_move_title = move ? move.title : "";
+      updates.special_move_description = move ? move.text : "";
+      const past = Ouw25Rules.PAST_MOVES[values.past];
+      updates.past_rules = past ? past.text : "";
+      updates.wounds_two = values.past === "artist" || (values.past === "deprived" && isChecked(values.wound_fragile)) ? "1" : "0";
+      updates.wounds_four = values.past === "hard_worker" ? "1" : "0";
+      for (let index = 0; index < 4; index += 1) {
+        const action = past && past.actions[index];
+        updates[`past_action_${index + 1}_visible`] = action ? "1" : "0";
+        updates[`past_action_${index + 1}_label`] = action ? action.label : "";
+      }
+      const hiring = hiringAction(values.hiring_history);
+      updates.hiring_action_visible = hiring ? "1" : "0";
+      updates.hiring_action_label = hiring ? hiring.label : "";
+      if (eventInfo && eventInfo.sourceAttribute === "past") updates.past_roll_result = "";
+      if (eventInfo && eventInfo.sourceAttribute === "hiring_history") updates.hiring_roll_result = "";
       setAttrs(updates);
+    });
+  }
+
+  function updateRepeatingTraits(section, category) {
+    getSectionIDs(section, function (ids) {
+      const names = ids.map((id) => `${section}_${id}_trait`);
+      getAttrs(names, function (values) {
+        const updates = {};
+        names.forEach((name) => {
+          updates[`${name}_description`] = Ouw25Rules.describe(category, values[name]);
+        });
+        if (names.length) setAttrs(updates);
+      });
+    });
+  }
+
+  function hiringAction(value) {
+    if (value === "tale") {
+      return { label: "Стоимость истории · d6 × 1 000", dice: "1d6*1000", unit: "ог. — стоимость истории; доступно раз в три встречи." };
+    }
+    if (value === "pitiful") {
+      return { label: "Помощь фонда · d6 × 500", dice: "1d6*500", unit: "ог. — помощь фонда; раз в две встречи в крупном порту." };
+    }
+    if (value === "ate") {
+      return { label: "Действует ли яд? · d6", dice: "1d6", threshold: 3, yes: "Яд действует.", no: "Яд не действует." };
+    }
+    return null;
+  }
+
+  function updateDebtTotal() {
+    getSectionIDs("repeating_creditors", function (ids) {
+      const names = ids.map((id) => `repeating_creditors_${id}_creditor_amount`);
+      getAttrs(names, function (values) {
+        const total = names.reduce((sum, name) => {
+          const amount = Number(values[name]);
+          return sum + (Number.isFinite(amount) && amount >= 0 ? amount : 0);
+        }, 0);
+        setAttrs({ debt_total: String(total) });
+      });
+    });
+  }
+
+  function updatePensionStage() {
+    getAttrs(["pension_balance", "pension_status"], function (values) {
+      const updates = {};
+      if (values.pension_status === "Счёт пополнен.") updates.pension_status = "";
+      try {
+        updates.pension_stage_status = Ouw25Rules.pensionStage(values.pension_balance || "0");
+      } catch (error) {
+        updates.pension_stage_status = error.message;
+      }
+      setAttrs(updates);
+    });
+  }
+
+  function changeLuck(delta) {
+    getAttrs(["luck_points"], function (values) {
+      try {
+        const current = Ouw25Rules.validateMoney(values.luck_points == null || values.luck_points === "" ? "1" : values.luck_points, "Метки удачи");
+        const next = Ouw25Rules.validateMoney(String(current + delta), "Метки удачи");
+        setAttrs({ luck_points: String(next), luck_status: "" });
+      } catch {
+        setAttrs({ luck_status: delta < 0 && values.luck_points === "0" ? "Нет меток удачи для списания." : "Не удалось изменить число меток удачи." });
+      }
+    });
+  }
+
+  function randomizePersonal(category, attribute) {
+    const options = Ouw25Rules.PERSONAL_RANDOM[category];
+    const surnameRoll = category === "name" ? " {{Фамилия=[[1d15]]}}" : "";
+    startRoll(`&{template:default} {{name=Случайный выбор}} {{Выбор=[[${options.dice}]]}}${surnameRoll}`, function (results) {
+      finishRoll(results.rollId);
+      try {
+        let value = Ouw25Rules.randomPersonalChoice(category, results.results["Выбор"].result);
+        if (category === "name") {
+          value += ` ${Ouw25Rules.randomPersonalChoice("surname", results.results["Фамилия"].result)}`;
+        }
+        setAttrs({
+          [attribute]: value,
+          personal_random_status: `Случайный выбор: ${Ouw25Rules.describe(category, value) || value}`,
+        }, { silent: true }, function () {
+          updatePersonal({ sourceAttribute: attribute });
+          if (category === "merit" || category === "flaw") {
+            updateRepeatingTraits(category === "merit" ? "repeating_merits" : "repeating_flaws", category);
+          }
+        });
+      } catch (error) {
+        setAttrs({ personal_random_status: error.message });
+      }
+    });
+  }
+
+  function randomizePocketMoney() {
+    getAttrs(["past"], function (values) {
+      const multiplier = values.past === "deprived" ? 50 : values.past === "slave" ? 0 : 10;
+      startRoll(`&{template:default} {{name=Стартовые карманные деньги}} {{Сумма=[[4d6*${multiplier}]]}}`, function (results) {
+        finishRoll(results.rollId);
+        try {
+          const amount = Ouw25Rules.validateMoney(results.results["Сумма"].result, "Карманные деньги");
+          setAttrs({ pocket_money: String(amount), pocket_money_status: "", personal_random_status: `Стартовые карманные деньги: ${amount} ог.` });
+        } catch (error) {
+          setAttrs({ personal_random_status: error.message });
+        }
+      });
+    });
+  }
+
+  function publishPersonalResult(title, outcome, attribute) {
+    const entry = typeof outcome === "string" ? { text: outcome } : outcome;
+    const extraRolls = Object.entries(entry.rolls || {});
+    let chatText = entry.text;
+    extraRolls.forEach(([label]) => { chatText = chatText.replaceAll(`{${label}}`, `см. «${label}»`); });
+    const expression = [
+      `&{template:default} {{name=${title}}} {{Описание=${chatText}}}`,
+      ...extraRolls.map(([label, dice]) => `{{${label}=[[${dice}]]}}`),
+    ].join(" ");
+    startRoll(expression, function (results) {
+      finishRoll(results.rollId);
+      try {
+        let text = entry.text;
+        extraRolls.forEach(([label]) => {
+          const value = Ouw25Rules.validateMoney(results.results[label].result, label);
+          text = text.replaceAll(`{${label}}`, String(value));
+        });
+        setAttrs({ [attribute]: `${title}: ${text}` });
+      } catch (error) {
+        setAttrs({ [attribute]: error.message });
+      }
+    });
+  }
+
+  function rollPersonalAction(action, attribute) {
+    if (!action) return;
+    if (action.collision) {
+      startRoll([
+        `&{template:default} {{name=${action.label}}}`,
+        "{{Успехов=[[ [[ [[4+?{Дополнительные d6|0}]]d6>6 ]] - ?{Осложнения|0} ]]}}",
+      ].join(" "), function (results) {
+        finishRoll(results.rollId);
+        setAttrs({ [attribute]: "Проверка отправлена в чат. Примените исход по памятке прошлого; последствия не меняются автоматически." });
+      });
+      return;
+    }
+    startRoll(`&{template:default} {{name=${action.label}}} {{Бросок=[[${action.dice}]]}}`, function (results) {
+      finishRoll(results.rollId);
+      try {
+        const value = Ouw25Rules.validateMoney(results.results["Бросок"].result, "Результат броска");
+        let outcome;
+        if (action.outcomes) {
+          outcome = action.outcomes[value - 1];
+          if (!outcome) throw new Error("Таблица: некорректный результат броска.");
+        } else if (action.threshold !== undefined) {
+          if (value < 1 || value > 6) throw new Error("Проверка d6: некорректный результат броска.");
+          outcome = value <= action.threshold ? action.yes : action.no;
+        } else {
+          outcome = `${value} ${action.unit}`;
+        }
+        publishPersonalResult(action.label, outcome, attribute);
+      } catch (error) {
+        setAttrs({ [attribute]: error.message });
+      }
     });
   }
 
@@ -438,10 +616,18 @@
           values.pension_balance || "0",
           values.pension_deposit
         );
+        const previousThreshold = Math.min(8, Math.floor(Number(values.pension_balance || "0") / 30000));
+        const threshold = Math.min(8, Math.floor(balance / 30000));
+        const crossed = Array.from({ length: threshold - previousThreshold }, (_, index) =>
+          ((previousThreshold + index + 1) * 30000).toLocaleString("ru-RU")
+        );
         setAttrs({
           pension_balance: String(balance),
           pension_deposit: "",
-          pension_status: "Счёт пополнен.",
+          pension_status: crossed.length
+            ? `Поздравляем! Новые пенсионные пороги: ${crossed.join(", ")} ог. ${threshold === 8 ? "Можно завершить контракт!" : "Открыто право на плановый отпуск."}`
+            : "",
+          pension_stage_status: Ouw25Rules.pensionStage(String(balance)),
         });
       } catch (error) {
         setAttrs({ pension_status: error.message });
@@ -454,6 +640,44 @@
   });
   on("change:cooperative_budget", function () {
     setMoneyStatus("cooperative_budget", "cooperative_budget_status", "Оперативный бюджет");
+  });
+  on("sheet:opened change:pension_balance", updatePensionStage);
+  on("sheet:opened change:repeating_creditors:creditor_amount remove:repeating_creditors", updateDebtTotal);
+  on("sheet:opened", function () {
+    setAttrs({ luck_status: "" });
+  });
+  on("clicked:luck_add", function () { changeLuck(1); });
+  on("clicked:luck_spend", function () { changeLuck(-1); });
+  [
+    ["name", "character_name"], ["specialty", "specialty"], ["past", "past"],
+    ["merit", "character_merit"], ["flaw", "character_flaw"], ["hiring", "hiring_history"],
+    ["dream", "big_dream"],
+  ].forEach(([category, attribute]) => {
+    on(`clicked:random_${category}`, function () { randomizePersonal(category, attribute); });
+  });
+  on("clicked:random_money", randomizePocketMoney);
+  ["merit", "flaw"].forEach((category) => {
+    const section = category === "merit" ? "repeating_merits" : "repeating_flaws";
+    on(`sheet:opened change:${section}:trait`, function () { updateRepeatingTraits(section, category); });
+    on(`clicked:${section}:random_trait`, function (eventInfo) {
+      const source = eventInfo && eventInfo.sourceAttribute;
+      if (!source || !source.startsWith(`${section}_`) || !source.endsWith("_random_trait")) return;
+      const prefix = source.slice(0, -"_random_trait".length);
+      randomizePersonal(category, `${prefix}_trait`);
+    });
+  });
+  for (let index = 0; index < 4; index += 1) {
+    on(`clicked:past_action_${index + 1}`, function () {
+      getAttrs(["past"], function (values) {
+        const past = Ouw25Rules.PAST_MOVES[values.past];
+        rollPersonalAction(past && past.actions[index], "past_roll_result");
+      });
+    });
+  }
+  on("clicked:hiring_action", function () {
+    getAttrs(["hiring_history"], function (values) {
+      rollPersonalAction(hiringAction(values.hiring_history), "hiring_roll_result");
+    });
   });
 
   on("change:unrest_display", function (eventInfo) {
@@ -510,7 +734,7 @@
   });
 
   on(
-    "sheet:opened change:specialty change:past change:character_merit change:character_flaw change:hiring_history change:cooperative_reputation change:shared_memory",
+    "sheet:opened change:specialty change:past change:wound_fragile change:character_merit change:character_flaw change:hiring_history change:cooperative_reputation change:shared_memory",
     updatePersonal
   );
   on(
