@@ -681,19 +681,26 @@
   padding: 0.45rem;
 }
 
-.charsheet .sheet-stat > span {
+.charsheet .sheet-stat .sheet-stat-label {
   display: block;
   font-size: 0.85rem;
 }
 
-.charsheet .sheet-stat strong {
+.charsheet .sheet-stat-value {
   display: block;
   font-size: 1.725rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.charsheet .sheet-stat strong span {
+.charsheet .sheet-stat-cargo .sheet-stat-value {
   display: inline;
+}
+
+.charsheet .sheet-stat-cargo {
+  font-size: 1.725rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .charsheet .sheet-meter-group {

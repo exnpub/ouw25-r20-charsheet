@@ -154,7 +154,7 @@
       <label class="sheet-field-inline">Вычет шестёрок<input type="number" name="attr_ce_pre_deduction" min="0" step="1" value="0"></label>
       <button type="action" name="act_roll_collision">Бросить проверку</button>
     </div>
-    <p>Последняя проверка: <strong name="attr_ce_status">Ожидает броска.</strong></p>
+    <p>Последняя проверка: <strong><span name="attr_ce_status">Ожидает броска.</span></strong></p>
     <p>Шестёрок выпало: <span name="attr_ce_raw_sixes"></span>; осталось после вычета: <span name="attr_ce_remaining_sixes"></span>.</p>
   </div>
 
@@ -260,11 +260,14 @@
           </select>
         </div>
         <div class="sheet-ship-stats">
-          <div class="sheet-stat"><span>Скорость, сект. за вахту</span><strong name="attr_ship_speed">1</strong></div>
-          <div class="sheet-stat"><span>Потребление топлива, на сектор</span><strong name="attr_ship_fuel_rate">1</strong></div>
-          <div class="sheet-stat"><span>Потребление провианта, на сектор</span><strong name="attr_ship_provision_rate">1</strong></div>
-          <div class="sheet-stat"><span>Станин, доступно</span><strong name="attr_stanine_count">2</strong></div>
-          <div class="sheet-stat"><span>Вместимость трюма, в стаунтах</span><strong><span name="attr_cargo_occupied">0</span> / <span name="attr_cargo_capacity">1600</span></strong></div>
+          <div class="sheet-stat"><span class="sheet-stat-label">Скорость, сект. за вахту</span><span class="sheet-stat-value" name="attr_ship_speed">1</span></div>
+          <div class="sheet-stat"><span class="sheet-stat-label">Потребление топлива, на сектор</span><span class="sheet-stat-value" name="attr_ship_fuel_rate">1</span></div>
+          <div class="sheet-stat"><span class="sheet-stat-label">Потребление провианта, на сектор</span><span class="sheet-stat-value" name="attr_ship_provision_rate">1</span></div>
+          <div class="sheet-stat"><span class="sheet-stat-label">Станин, доступно</span><span class="sheet-stat-value" name="attr_stanine_count">2</span></div>
+          <div class="sheet-stat sheet-stat-cargo">
+            <span class="sheet-stat-label">Вместимость трюма, в стаунтах</span>
+            <span class="sheet-stat-value" name="attr_cargo_occupied">0</span> / <span class="sheet-stat-value" name="attr_cargo_capacity">1600</span>
+          </div>
         </div>
         <div class="sheet-hold-bonus">
           Бонус за «Вместительный трюм»: +<input type="number" title="d6 × 100" name="attr_hold_bonus" min="0" max="600" step="100" value="0"> ст.
@@ -283,12 +286,13 @@
             <input type="number" name="attr_fuel_stock" min="0" step="1" value="10">
           </label>
           <label class="sheet-ship-resource">Смуты, ед.
-              <input type="number" name="attr_unrest" min="0" step="1" value="0">
+              <input type="number" name="attr_unrest" min="0" max="25" step="1" value="0">
           </label>
           <label class="sheet-ship-resource">Груз в трюме, ст.
             <input type="number" name="attr_cargo_load" min="0" step="1" value="0">
           </label>
         </div>
+        <p class="sheet-field-status sheet-ship-status"><span name="attr_ship_status"></span></p>
       </div>
 
 

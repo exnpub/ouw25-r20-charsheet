@@ -91,7 +91,7 @@
     const damageNames = Array.from({ length: 11 }, (_, index) => `ship_damage_${index + 1}`);
     const names = [
       "ship_class", "crew_count", "forced_mode", "illumination_mode", "unrest",
-      "cargo_load", "hold_bonus", ...SHIP_SELECTIONS, ...damageNames,
+      "cargo_load", "fuel_stock", "provisions_stock", "hold_bonus", ...SHIP_SELECTIONS, ...damageNames,
     ];
     getAttrs(names, function (values) {
       const merits = [1, 2, 3, 4].map((index) => values[`ship_merit_${index}`]);
@@ -121,6 +121,8 @@
           illumination,
           unrest: values.unrest || "0",
           cargoLoad: values.cargo_load || "0",
+          fuelStock: values.fuel_stock || "0",
+          provisionsStock: values.provisions_stock || "0",
           holdBonus: values.hold_bonus || "0",
           merits,
           compartments,
@@ -316,7 +318,7 @@
     updatePersonal
   );
   on(
-    "sheet:opened change:ship_class change:crew_count change:unrest change:cargo_load change:hold_bonus change:ship_damage_1 change:ship_damage_2 change:ship_damage_3 change:ship_damage_4 change:ship_damage_5 change:ship_damage_6 change:ship_damage_7 change:ship_damage_8 change:ship_damage_9 change:ship_damage_10 change:ship_damage_11 change:ship_merit_1 change:ship_merit_2 change:ship_merit_3 change:ship_merit_4 change:ship_flaw_1 change:ship_flaw_2 change:ship_flaw_3 change:ship_flaw_4 change:stanine_1 change:stanine_2 change:stanine_3 change:stanine_4 change:stanine_5 change:stanine_6 change:stanine_7 change:stanine_8 change:compartment_1 change:compartment_2 change:compartment_3 change:compartment_4 change:gear_1 change:gear_2",
+    "sheet:opened change:ship_class change:crew_count change:unrest change:cargo_load change:fuel_stock change:provisions_stock change:hold_bonus change:ship_damage_1 change:ship_damage_2 change:ship_damage_3 change:ship_damage_4 change:ship_damage_5 change:ship_damage_6 change:ship_damage_7 change:ship_damage_8 change:ship_damage_9 change:ship_damage_10 change:ship_damage_11 change:ship_merit_1 change:ship_merit_2 change:ship_merit_3 change:ship_merit_4 change:ship_flaw_1 change:ship_flaw_2 change:ship_flaw_3 change:ship_flaw_4 change:stanine_1 change:stanine_2 change:stanine_3 change:stanine_4 change:stanine_5 change:stanine_6 change:stanine_7 change:stanine_8 change:compartment_1 change:compartment_2 change:compartment_3 change:compartment_4 change:gear_1 change:gear_2",
     updateShip
   );
   on("change:forced_mode", onForcedModeChange);

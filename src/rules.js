@@ -193,6 +193,8 @@ var Ouw25Rules = (function () {
     illumination,
     unrest,
     cargoLoad,
+    fuelStock = "0",
+    provisionsStock = "0",
     holdBonus,
     merits,
     compartments,
@@ -200,9 +202,13 @@ var Ouw25Rules = (function () {
   }) {
     const classIndex = parseInteger(shipClass, "Класс судна", 0, SHIP_CLASSES.length - 1);
     const ship = SHIP_CLASSES[classIndex];
-    const crew = parseInteger(crewCount, "Число матросов", 0, ship.crew);
+    const crew = parseInteger(crewCount, "Число матросов", 0);
+    const crewOverCapacity = crew > ship.crew;
     const seaUnrest = parseInteger(unrest, "Морская смута", 0);
     const load = parseInteger(cargoLoad, "Груз в трюме", 0);
+    const storedFuel = parseInteger(fuelStock, "Запас топлива", 0);
+    const storedProvisions = parseInteger(provisionsStock, "Запас провианта", 0);
+    const provisionsSpace = Math.ceil(storedProvisions / 18);
     const hasLargeHold = merits.includes("large_hold");
     const expansion = hasLargeHold
       ? parseInteger(holdBonus || "0", "Бонус вместимости", 0, 600)
@@ -228,7 +234,7 @@ var Ouw25Rules = (function () {
       return sum + size;
     }, 0);
     const holdCapacity = ship.hold + expansion;
-    const cargoOccupied = load + compartmentSpace;
+    const cargoOccupied = load + storedFuel + provisionsSpace + compartmentSpace;
     const durability = ship.durability + (merits.includes("strong_hull") ? 2 : 0);
     const damaged = damage.filter(Boolean).length;
     const crewProgress = Math.min(100, Math.floor((crew / ship.crew) * 100));
@@ -257,7 +263,8 @@ var Ouw25Rules = (function () {
       damageOverLimit: damaged > durability,
       requiresMechanicCheck: Boolean(forced),
       status: [
-        cargoOccupied > holdCapacity && "Груз + спец. отсеки превышают вместимость трюма.",
+        crewOverCapacity && `Экипаж (${crew}) превышает вместимость судна (${ship.crew}); расчёты выполнены по введённому числу.`,
+        cargoOccupied > holdCapacity && "Груз, топливо, провиант и спец. отсеки превышают вместимость трюма.",
         hasLargeHold && expansion === 0 && "(укажите результат d6 × 100)",
       ].filter(Boolean).join(" "),
     };

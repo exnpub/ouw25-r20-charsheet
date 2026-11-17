@@ -52,6 +52,7 @@ function createWorkerHarness(attributes, dice, queryAnswer = "4") {
     trigger(event, ...args) {
       (handlers[event] || []).forEach((callback) => callback(...args));
     },
+    attributes,
     writes,
     finishes,
     rolls,
@@ -139,9 +140,120 @@ test("sheet open populates the chosen card and ship-derived values", () => {
   assert.match(personal.reputation_description, /поиске/);
   assert.match(personal.shared_memory_description, /спасли/);
   assert.equal(ship.ship_speed, "1");
+  assert.equal(ship.ship_fuel_rate, "1");
+  assert.equal(ship.ship_provision_rate, "1");
+  assert.equal(ship.stanine_count, "2");
   assert.equal(ship.ship_durability_max, "5");
   assert.equal(ship.cargo_occupied, "420");
   assert.equal(ship.cargo_capacity, "1600");
+});
+
+test("changing ship class refreshes all class-based resource stats", () => {
+  const classes = [
+    { fuel: "1", provisions: "1", stanines: "2", hold: "1600", crew: "10" },
+    { fuel: "2", provisions: "1", stanines: "3", hold: "3200", crew: "15" },
+    { fuel: "2", provisions: "2", stanines: "4", hold: "6400", crew: "20" },
+    { fuel: "4", provisions: "2", stanines: "5", hold: "12800", crew: "25" },
+    { fuel: "4", provisions: "3", stanines: "6", hold: "25200", crew: "30" },
+    { fuel: "8", provisions: "3", stanines: "7", hold: "50400", crew: "35" },
+    { fuel: "10", provisions: "5", stanines: "8", hold: "100000", crew: "50" },
+  ];
+  const harness = createWorkerHarness({
+    ship_class: "0",
+    crew_count: "10",
+    forced_mode: "0",
+    illumination_mode: "0",
+    unrest: "0",
+    cargo_load: "0",
+    hold_bonus: "0",
+  }, []);
+
+  classes.forEach((expected, classIndex) => {
+    harness.attributes.ship_class = String(classIndex);
+    harness.attributes.crew_count = expected.crew;
+    harness.trigger("change:ship_class");
+
+    const ship = harness.writes.at(-1);
+    assert.equal(ship.ship_fuel_rate, expected.fuel);
+    assert.equal(ship.ship_provision_rate, expected.provisions);
+    assert.equal(ship.stanine_count, expected.stanines);
+    assert.equal(ship.cargo_capacity, expected.hold);
+  });
+});
+
+test("lower ship classes calculate stats with an over-capacity crew and warn", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0",
+    crew_count: "30",
+    forced_mode: "0",
+    illumination_mode: "0",
+    unrest: "0",
+    cargo_load: "0",
+    hold_bonus: "0",
+  }, []);
+
+  const classes = [
+    { fuel: "1", provisions: "1", stanines: "2", hold: "1600", crewCapacity: "10" },
+    { fuel: "2", provisions: "1", stanines: "3", hold: "3200", crewCapacity: "15" },
+    { fuel: "2", provisions: "2", stanines: "4", hold: "6400", crewCapacity: "20" },
+    { fuel: "4", provisions: "2", stanines: "5", hold: "12800", crewCapacity: "25" },
+  ];
+  classes.forEach((expected, classIndex) => {
+    harness.attributes.ship_class = String(classIndex);
+    harness.trigger("change:ship_class");
+
+    const ship = harness.writes.at(-1);
+    assert.equal(ship.ship_fuel_rate, expected.fuel);
+    assert.equal(ship.ship_provision_rate, expected.provisions);
+    assert.equal(ship.stanine_count, expected.stanines);
+    assert.equal(ship.cargo_capacity, expected.hold);
+    assert.match(ship.ship_status, new RegExp(`Экипаж \\(30\\) превышает вместимость судна \\(${expected.crewCapacity}\\)`));
+  });
+});
+
+test("changing cargo load refreshes occupied hold capacity", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0",
+    crew_count: "10",
+    forced_mode: "0",
+    illumination_mode: "0",
+    unrest: "0",
+    cargo_load: "0",
+    hold_bonus: "0",
+    compartment_1: "passenger",
+  }, []);
+
+  harness.attributes.cargo_load = "125";
+  harness.trigger("change:cargo_load");
+
+  const ship = harness.writes.at(-1);
+  assert.equal(ship.cargo_occupied, "545");
+  assert.equal(ship.cargo_capacity, "1600");
+});
+
+test("fuel and provisions counters refresh occupied hold capacity", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0",
+    crew_count: "10",
+    forced_mode: "0",
+    illumination_mode: "0",
+    unrest: "0",
+    cargo_load: "100",
+    fuel_stock: "25",
+    provisions_stock: "18",
+    hold_bonus: "0",
+  }, []);
+
+  harness.trigger("change:fuel_stock");
+  assert.equal(harness.writes.at(-1).cargo_occupied, "126");
+
+  harness.attributes.provisions_stock = "19";
+  harness.trigger("change:provisions_stock");
+  assert.equal(harness.writes.at(-1).cargo_occupied, "127");
+
+  harness.attributes.fuel_stock = "30";
+  harness.trigger("change:fuel_stock");
+  assert.equal(harness.writes.at(-1).cargo_occupied, "132");
 });
 
 test("pocket money and cooperative budget reject fractions", () => {
@@ -215,6 +327,7 @@ test("ship calculations show doubled illumination fuel and warning thresholds", 
   const ship = harness.writes.find((write) => write.ship_speed);
   assert.equal(ship.ship_fuel_rate, "4");
   assert.equal(ship.ship_provision_rate, "2");
+  assert.equal(ship.stanine_count, "4");
   assert.equal(ship.cargo_meter_label, "0 / 6400 ст.");
   assert.equal(ship.crew_meter_label, "20 / 20");
   assert.equal(ship.unrest_meter_label, "20 / 25");

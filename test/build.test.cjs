@@ -105,8 +105,8 @@ test("build contains the CSS brand placeholder and guarded pension deposit contr
   assert.match(css, /\.sheet-ship-resources\s*\{[^}]*column-gap:\s*15px/s);
   assert.match(css, /\.sheet-ship-quality-columns\s*\{[^}]*grid-template-columns:\s*repeat\(2/s);
   assert.match(css, /\.sheet-ship-quality-list\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/s);
-  assert.match(css, /\.sheet-stat strong\s*\{[^}]*font-size:\s*1\.725rem/s);
-  assert.match(css, /\.sheet-stat > span\s*\{[^}]*font-size:\s*0\.85rem/s);
+  assert.match(css, /\.sheet-stat-value\s*\{[^}]*font-size:\s*1\.725rem/s);
+  assert.match(css, /\.sheet-stat .sheet-stat-label\s*\{[^}]*font-size:\s*0\.85rem/s);
   assert.match(css, /\.sheet-hold-bonus\s*\{[^}]*display:\s*none;[^}]*grid-column:\s*1 \/ -1/s);
   assert.match(css, /\.sheet-tooltip-toggle:has\(input:not\(:checked\)\):hover::after/);
   const borderColors = [...css.matchAll(/border:\s*[^;#]*#([0-9a-f]{6})/gi)]
@@ -134,12 +134,24 @@ test("ship damage checklist has a visible title and base checkboxes", () => {
   assert.match(css, /\.charsheet \.sheet-ship-damage \.sheet-checklist-title\s*\{[^}]*font-size:\s*1\.5em/s);
 });
 
+test("ship stats expose every changing value as a direct Roll20 display span", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  for (const attribute of [
+    "ship_speed", "ship_fuel_rate", "ship_provision_rate", "stanine_count",
+    "cargo_occupied", "cargo_capacity",
+  ]) {
+    assert.match(html, new RegExp(`<span class="sheet-stat-value" name="attr_${attribute}">`));
+  }
+  assert.doesNotMatch(html, /<strong[^>]*name="attr_(?:ship_speed|ship_fuel_rate|ship_provision_rate|stanine_count|cargo_occupied|cargo_capacity)"/);
+  assert.match(html, /class="sheet-field-status sheet-ship-status"><span name="attr_ship_status"><\/span>/);
+  assert.match(css, /\.sheet-stat-value\s*\{[^}]*display:\s*block;[^}]*font-size:\s*1\.725rem/s);
+  assert.match(css, /\.sheet-stat-cargo \.sheet-stat-value\s*\{[^}]*display:\s*inline/s);
+});
+
 test("build wires derived ship values, responsive equipment slots, and force roll queries", () => {
   const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
   const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
-  assert.match(html, /name="attr_ship_speed"/);
-  assert.match(html, /name="attr_ship_fuel_rate"/);
-  assert.match(html, /name="attr_ship_provision_rate"/);
   assert.match(html, /name="attr_cargo_progress"/);
   assert.match(html, /name="attr_crew_progress"/);
   assert.match(html, /name="attr_unrest_progress"/);
