@@ -158,10 +158,82 @@ test("build wires derived ship values, responsive equipment slots, and force rol
   assert.match(html, /name="attr_cargo_meter_label"/);
   assert.match(html, /name="attr_crew_meter_label"/);
   assert.match(html, /name="attr_unrest_meter_label"/);
-  assert.match(html, /Кости проверки механика\|4\|5\|6/);
+  assert.match(html, /4\+\?\{Дополнительные d6\|0\}/);
+  assert.match(html, /\?\{Осложнения\|0\}/);
+  assert.doesNotMatch(html, /Кости проверки механика/);
   assert.match(html, /name="attr_ship_damage_9"/);
   assert.match(css, /sheet-stanine-8/);
   assert.match(css, /sheet-damage-9/);
+});
+
+test("travel panel exposes mode buttons, status, and active-state colors", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  const panel = html.match(/<div class="bordered-sector sheet-travel-panel">([\s\S]*?)<\/div>/)?.[1];
+
+  assert.ok(panel);
+  assert.match(panel, /<h3>В пути<\/h3>/);
+  assert.match(panel, /name="attr_forced_mode"/);
+  assert.match(panel, /name="act_toggle_forced_mode"[^>]*>Форсаж!<span/);
+  assert.match(panel, /name="attr_illumination_mode"/);
+  assert.match(panel, /name="act_toggle_illumination_mode"[^>]*>Иллюминация<span/);
+  for (const action of ["toggle_forced_mode", "toggle_illumination_mode", "travel_sector",
+    "undo_sector", "reset_sectors", "psychotherapy", "increase_unrest"]) {
+    assert.match(panel, new RegExp(`name="act_${action}">[^<]+<span class="sheet-control-tooltip" role="tooltip">[^<]+</span></button>`));
+    assert.match(html, new RegExp(`clicked:${action}`));
+  }
+  assert.match(panel, /name="act_undo_sector"[\s\S]*?<\/button>\s*<button[^>]*name="act_reset_sectors"/);
+  assert.match(html, /name="attr_travel_status"/);
+  assert.match(css, /\.sheet-travel-controls:has\(input\[name="attr_forced_mode"\]:checked\)[\s\S]*?background:\s*#b3261e/s);
+  assert.match(css, /\.sheet-travel-controls:has\(input\[name="attr_illumination_mode"\]:checked\)[\s\S]*?background:\s*#536b37/s);
+  assert.match(html, /clicked:toggle_forced_mode/);
+  assert.match(html, /clicked:toggle_illumination_mode/);
+});
+
+test("ship and travel tooltips have explicit content and are not clipped by the ship heading", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  assert.match(html, /class="sheet-ship-name"[^>]*>[\s\S]*?<span class="sheet-control-tooltip" role="tooltip">Название вашего кораблика<\/span><\/label>/);
+  assert.match(css, /\.charsheet \.sheet-ship-heading\s*\{[^}]*overflow:\s*visible/s);
+  assert.match(css, /button:hover > \.sheet-control-tooltip/);
+  assert.match(css, /button:focus-visible > \.sheet-control-tooltip/);
+  assert.match(css, /\.sheet-ship-name:focus-within > \.sheet-control-tooltip/);
+});
+
+test("sector reset has a hidden confirmation row with confirm and cancel actions", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
+  assert.match(html, /name="attr_reset_sectors_pending" value="1"/);
+  for (const action of ["confirm_reset_sectors", "cancel_reset_sectors"]) {
+    assert.match(html, new RegExp(`name="act_${action}"`));
+    assert.match(html, new RegExp(`clicked:${action}`));
+  }
+  assert.match(css, /\.sheet-reset-sectors-confirmation\s*\{[^}]*display:\s*none/s);
+  assert.match(css, /input\[name="attr_reset_sectors_pending"\]:checked \+ \.sheet-reset-sectors-confirmation\s*\{[^}]*display:\s*flex/s);
+});
+
+test("travel exposes a disabled fallback button, shortage warning and empty-stock states", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  assert.match(html, /name="act_travel_sector_blocked" disabled/);
+  assert.match(html, /class="sheet-travel-warning" role="alert"><span name="attr_travel_warning"/);
+  for (const state of ["travel_blocked", "fuel_empty", "provisions_empty", "fuel_low"]) {
+    assert.match(html, new RegExp(`type="checkbox" name="attr_${state}"`));
+  }
+  assert.match(html, /class="sheet-fuel-warning" role="status"><span name="attr_fuel_warning"/);
+});
+
+test("unrest has a rounded editable display and separate exact storage", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  assert.match(html, /type="number" name="attr_unrest_display" min="0" max="25" step="1"[^>]*>\s*<span>из 25<\/span>/);
+  assert.match(html, /type="hidden" name="attr_unrest" value="0"/);
+});
+
+test("psychotherapy chat shows computed relief rather than the unmodified d6", () => {
+  const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
+  const template = html.match(/<rolltemplate class="sheet-rolltemplate-ouw25therapy">([\s\S]*?)<\/rolltemplate>/)?.[1];
+  assert.ok(template);
+  assert.match(template, /\{\{computed::relief\}\}/);
+  assert.doesNotMatch(template, /\{\{relief\}\}/);
 });
 
 test("build places ship equipment in left and right columns without visible numbered labels", () => {
@@ -202,11 +274,11 @@ test("ship identity row uses ordinal class labels without changing numeric value
     ],
   );
   assert.match(css, /\.charsheet \.sheet-app input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\):not\(\[type="hidden"\]\),[\s\S]*?\.charsheet \.sheet-app select\s*\{[^}]*height:\s*28px/s);
-  assert.match(css, /\.charsheet \.sheet-ship-heading\s*\{[^}]*align-items:\s*center;[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(min-content, max-content\) auto max-content max-content;[^}]*overflow-x:\s*auto/s);
+  assert.match(css, /\.charsheet \.sheet-ship-heading\s*\{[^}]*align-items:\s*center;[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(min-content, max-content\) auto max-content max-content;[^}]*overflow:\s*visible/s);
   assert.match(css, /\.charsheet \.sheet-ship-name input\s*\{[^}]*width:\s*30ch/s);
   assert.match(css, /\.charsheet \.sheet-ship-name input\s*\{[^}]*line-height:\s*18px/s);
   assert.match(css, /\.charsheet \.sheet-ship-name input,[\s\S]*?\.charsheet \.sheet-ship-class-select\s*\{[^}]*padding:\s*4px/s);
   assert.match(css, /\.charsheet \.sheet-ship-class-select\s*\{[^}]*appearance:\s*none;[^}]*box-sizing:\s*border-box;[^}]*height:\s*28px;[^}]*line-height:\s*18px;[^}]*transform:\s*translateY\(-1px\);[^}]*width:\s*calc\(16ch \+ 24px \+ 2px\)/s);
   assert.match(html, /class="sheet-ship-name" data-tooltip="Название вашего кораблика"/);
-  assert.match(css, /\.charsheet \.sheet-ship-name\[data-tooltip\]:hover::after/);
+  assert.match(css, /\.charsheet \.sheet-ship-name:hover > \.sheet-control-tooltip/);
 });

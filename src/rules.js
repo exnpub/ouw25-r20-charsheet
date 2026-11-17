@@ -150,6 +150,19 @@ var Ouw25Rules = (function () {
     };
   }
 
+  function parseResource(value, label) {
+    const text = String(value ?? "").trim();
+    const number = Number(text);
+    if (!/^\d+(?:\.\d+)?$/.test(text) || !Number.isFinite(number) || number > Number.MAX_SAFE_INTEGER) {
+      throw new Error(`${label}: введите неотрицательное число.`);
+    }
+    return number;
+  }
+
+  function parseUnrest(value) {
+    return Math.min(25, parseResource(value, "Морская смута"));
+  }
+
   function calculatePensionBalance(balanceValue, depositValue) {
     const balance = parseInteger(balanceValue, "Пенсионный счёт", 0);
     const deposit = parseInteger(depositValue, "Сумма пополнения", 1);
@@ -204,10 +217,10 @@ var Ouw25Rules = (function () {
     const ship = SHIP_CLASSES[classIndex];
     const crew = parseInteger(crewCount, "Число матросов", 0);
     const crewOverCapacity = crew > ship.crew;
-    const seaUnrest = parseInteger(unrest, "Морская смута", 0);
+    const seaUnrest = parseUnrest(unrest);
     const load = parseInteger(cargoLoad, "Груз в трюме", 0);
-    const storedFuel = parseInteger(fuelStock, "Запас топлива", 0);
-    const storedProvisions = parseInteger(provisionsStock, "Запас провианта", 0);
+    const storedFuel = parseResource(fuelStock, "Запас топлива");
+    const storedProvisions = parseResource(provisionsStock, "Запас провианта");
     const provisionsSpace = Math.ceil(storedProvisions / 18);
     const hasLargeHold = merits.includes("large_hold");
     const expansion = hasLargeHold
@@ -277,6 +290,8 @@ var Ouw25Rules = (function () {
     calculatePensionBalance,
     validateMoney,
     calculateShip,
+    parseResource,
+    parseUnrest,
     describe,
     describeMany,
   };

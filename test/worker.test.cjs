@@ -6,7 +6,7 @@ const test = require("node:test");
 
 const root = path.join(__dirname, "..");
 
-function createWorkerHarness(attributes, dice, queryAnswer = "4") {
+function createWorkerHarness(attributes, dice, { applyWrites = false, macroResults = {} } = {}) {
   const handlers = {};
   const writes = [];
   const finishes = [];
@@ -21,15 +21,22 @@ function createWorkerHarness(attributes, dice, queryAnswer = "4") {
     getAttrs(names, callback) {
       callback(Object.fromEntries(names.map((name) => [name, attributes[name] ?? ""])));
     },
-    setAttrs(values) {
+    setAttrs(values, options, callback) {
       writes.push(values);
+      if (applyWrites) {
+        Object.assign(attributes, values);
+      }
+      const onComplete = typeof options === "function" ? options : callback;
+      if (onComplete) {
+        onComplete();
+      }
     },
     startRoll(expression, callback) {
       rolls.push(expression);
-      if (expression.includes("query=")) {
+      if (expression.includes("&{template:default}") || expression.includes("&{template:ouw25therapy}")) {
         callback({
-          rollId: "test-query",
-          results: { query: { expression: `0[answer=${queryAnswer}]` } },
+          rollId: "test-macro",
+          results: macroResults,
         });
         return;
       }
@@ -269,7 +276,7 @@ test("pocket money and cooperative budget reject fractions", () => {
   assert.match(harness.writes[1].cooperative_budget_status, /Оперативный бюджет/);
 });
 
-test("forced-mode changes open a Roll20 query and roll on both transitions", () => {
+test("forced-mode changes finish the standard macro on both transitions", () => {
   const harness = createWorkerHarness(
     {
       ship_class: "0",
@@ -287,10 +294,364 @@ test("forced-mode changes open a Roll20 query and roll on both transitions", () 
   harness.trigger("change:forced_mode", { newValue: "1", sourceType: "player" });
   harness.trigger("change:forced_mode", { newValue: "0", sourceType: "player" });
 
-  assert.equal(harness.rolls.filter((roll) => roll.includes("query=")).length, 2);
-  assert.equal(harness.rolls.filter((roll) => roll.includes("Проверка удачи")).length, 2);
-  assert.equal(harness.rolls.filter((roll) => roll.includes("4d6")).length, 2);
-  assert.equal(harness.finishes.filter((finish) => finish.rollId === "test-query").length, 2);
+  assert.equal(harness.rolls.length, 2);
+  for (const roll of harness.rolls) {
+    assert.ok(roll.startsWith("&{template:default}"));
+    assert.ok(roll.includes("[[ [[ [[4+?{Дополнительные d6|0}]]d6>6 ]] - ?{Осложнения|0} ]]"));
+    assert.doesNotMatch(roll, /Кости проверки механика|query=|computed::/);
+  }
+  assert.equal(harness.finishes.length, 2);
+  assert.ok(harness.finishes.every((finish) => finish.rollId === "test-macro"));
+});
+
+test("travel buttons switch modes, update illumination fuel, and roll on both boost transitions", () => {
+  const illumination = createWorkerHarness({
+    ship_class: "2",
+    crew_count: "20",
+    forced_mode: "1",
+    illumination_mode: "0",
+    unrest: "0",
+    cargo_load: "0",
+    hold_bonus: "0",
+  }, [], { applyWrites: true });
+
+  illumination.trigger("clicked:toggle_illumination_mode");
+
+  assert.ok(illumination.writes.some((write) =>
+    write.illumination_mode === "1" && write.forced_mode === "0"
+  ));
+  const illuminatedShip = illumination.writes.find((write) => write.ship_fuel_rate);
+  assert.equal(illuminatedShip.ship_fuel_rate, "4");
+  assert.equal(illuminatedShip.ship_speed, "1");
+
+  const enabling = createWorkerHarness({
+    ship_class: "0",
+    crew_count: "10",
+    forced_mode: "0",
+    illumination_mode: "1",
+    ce_pre_deduction: "0",
+    unrest: "0",
+    cargo_load: "0",
+    hold_bonus: "0",
+  }, [6, 6, 1, 2], { applyWrites: true });
+
+  enabling.trigger("clicked:toggle_forced_mode");
+
+  assert.ok(enabling.writes.some((write) =>
+    write.forced_mode === "1" && write.illumination_mode === "0"
+  ));
+  assert.equal(enabling.rolls.length, 1);
+  assert.match(enabling.rolls[0], /Включение форсажа/);
+
+  const disabling = createWorkerHarness({
+    ship_class: "0",
+    crew_count: "10",
+    forced_mode: "1",
+    illumination_mode: "0",
+    ce_pre_deduction: "0",
+    unrest: "0",
+    cargo_load: "0",
+    hold_bonus: "0",
+  }, [6, 6, 1, 2], { applyWrites: true });
+
+  disabling.trigger("clicked:toggle_forced_mode");
+
+  assert.ok(disabling.writes.some((write) => write.forced_mode === "0"));
+  assert.equal(disabling.rolls.length, 1);
+  assert.match(disabling.rolls[0], /Выключение форсажа/);
+});
+
+test("sector travel uses current class, crew and mode and supports fractional stocks", () => {
+  for (const [mode, crew, fuel, provisions, unrest, watches] of [
+    ["normal", "10", "9", "9", "1", "1"],
+    ["forced_mode", "5", "8", "9.75", "1", "0.5"],
+    ["illumination_mode", "10", "8", "9", "0.5", "1"],
+    ["normal", "4", "8", "9.5", "1", "2"],
+  ]) {
+    const harness = createWorkerHarness({
+      ship_class: "0", crew_count: crew, fuel_stock: "10", provisions_stock: "10",
+      unrest: "0", [mode]: "1",
+    }, [], { applyWrites: true });
+    harness.trigger("clicked:travel_sector");
+    assert.equal(harness.attributes.fuel_stock, fuel);
+    assert.equal(harness.attributes.provisions_stock, provisions);
+    assert.equal(harness.attributes.unrest, unrest);
+    assert.equal(harness.attributes.travel_watches, watches);
+    assert.equal(harness.attributes.travel_sectors, "1");
+    assert.ok(harness.attributes.ship_speed);
+    assert.match(harness.attributes.travel_status, /Пройден сектор/);
+    harness.trigger("clicked:travel_sector");
+    assert.equal(harness.attributes.travel_sectors, "2");
+    assert.equal(harness.attributes.ship_status, "");
+  }
+  const larger = createWorkerHarness({
+    ship_class: "2", crew_count: "20", fuel_stock: "10", provisions_stock: "10",
+  }, [], { applyWrites: true });
+  larger.trigger("clicked:travel_sector");
+  assert.equal(larger.attributes.fuel_stock, "8");
+  assert.equal(larger.attributes.provisions_stock, "8");
+});
+
+test("unrest display rounds up without losing fractional illumination gains or rollback precision", () => {
+  const harness = createWorkerHarness({
+    fuel_stock: "20", provisions_stock: "10", illumination_mode: "1", unrest: "0",
+  }, [], { applyWrites: true });
+  for (const [exact, displayed] of [["0.5", "1"], ["1", "1"], ["1.5", "2"]]) {
+    harness.trigger("clicked:travel_sector");
+    assert.equal(harness.attributes.unrest, exact);
+    assert.equal(harness.attributes.unrest_display, displayed);
+    assert.equal(harness.attributes.unrest_meter_label, `${displayed} / 25`);
+    harness.trigger("change:unrest_display", { sourceType: "sheetworker" });
+    assert.equal(harness.attributes.unrest, exact);
+  }
+  harness.trigger("sheet:opened");
+  assert.equal(harness.attributes.unrest, "1.5");
+  assert.equal(harness.attributes.unrest_display, "2");
+  harness.trigger("clicked:undo_sector");
+  assert.equal(harness.attributes.unrest, "1");
+  assert.equal(harness.attributes.unrest_display, "1");
+});
+
+test("the rounded unrest counter remains editable without feeding worker updates back into storage", () => {
+  const harness = createWorkerHarness({
+    unrest: "2.5", unrest_display: "7",
+  }, [], { applyWrites: true });
+  harness.trigger("change:unrest_display", { sourceType: "player" });
+  assert.equal(harness.attributes.unrest, "7");
+  assert.equal(harness.attributes.unrest_display, "7");
+  harness.attributes.unrest_display = "-1";
+  harness.trigger("change:unrest_display", { sourceType: "player" });
+  assert.equal(harness.attributes.unrest, "7");
+  assert.match(harness.attributes.ship_status, /неотрицательное/);
+});
+
+test("insufficient supplies do not change stocks or the previous undo record", () => {
+  for (const stocks of [{ fuel_stock: "0", provisions_stock: "10" },
+    { fuel_stock: "10", provisions_stock: "0" }]) {
+    const harness = createWorkerHarness({
+      ...stocks, travel_last_sector: "previous",
+    }, [], { applyWrites: true });
+    harness.trigger("clicked:travel_sector");
+    assert.equal(harness.attributes.fuel_stock, stocks.fuel_stock);
+    assert.equal(harness.attributes.provisions_stock, stocks.provisions_stock);
+    assert.equal(harness.attributes.travel_last_sector, "previous");
+    assert.equal(harness.attributes.travel_sectors, undefined);
+    assert.match(harness.attributes.travel_status, /Недостаточно/);
+  }
+});
+
+test("ship refresh blocks travel and marks depleted supplies, including on sheet open", () => {
+  for (const [fuel, provisions, fuelEmpty, provisionsEmpty, warning] of [
+    ["0", "10", "1", "0", /Топливо закончилось/],
+    ["10", "0", "0", "1", /Провиант закончился/],
+    ["0", "0", "1", "1", /Топливо закончилось.*Провиант закончился/],
+    ["0.5", "10", "0", "0", /Недостаточно топлива/],
+    ["10", "0.5", "0", "0", /Недостаточно провианта/],
+  ]) {
+    const harness = createWorkerHarness({
+      fuel_stock: fuel, provisions_stock: provisions,
+    }, [], { applyWrites: true });
+    harness.trigger("sheet:opened");
+    assert.equal(harness.attributes.travel_blocked, "1");
+    assert.equal(harness.attributes.fuel_empty, fuelEmpty);
+    assert.equal(harness.attributes.provisions_empty, provisionsEmpty);
+    assert.match(harness.attributes.travel_warning, warning);
+    harness.attributes.fuel_stock = "10";
+    harness.attributes.provisions_stock = "10";
+    harness.trigger("change:fuel_stock");
+    assert.equal(harness.attributes.travel_blocked, "0");
+    assert.equal(harness.attributes.travel_warning, "");
+    assert.equal(harness.attributes.fuel_empty, "0");
+    assert.equal(harness.attributes.provisions_empty, "0");
+  }
+});
+
+test("travel availability follows changing fuel requirements and restores after rollback", () => {
+  const harness = createWorkerHarness({
+    fuel_stock: "1", provisions_stock: "1",
+  }, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(harness.attributes.travel_blocked, "0");
+  harness.trigger("clicked:toggle_illumination_mode");
+  assert.equal(harness.attributes.travel_blocked, "1");
+  assert.match(harness.attributes.travel_warning, /требуется 2/);
+  harness.trigger("clicked:toggle_illumination_mode");
+  assert.equal(harness.attributes.travel_blocked, "0");
+  harness.trigger("clicked:travel_sector");
+  assert.equal(harness.attributes.travel_blocked, "1");
+  assert.equal(harness.attributes.fuel_empty, "1");
+  assert.equal(harness.attributes.provisions_empty, "1");
+  assert.match(harness.attributes.travel_warning, /Переход недоступен/);
+  harness.trigger("clicked:undo_sector");
+  assert.equal(harness.attributes.travel_blocked, "0");
+  assert.equal(harness.attributes.travel_warning, "");
+  assert.equal(harness.attributes.fuel_empty, "0");
+  assert.equal(harness.attributes.provisions_empty, "0");
+});
+
+test("low-fuel warning starts at five sectors and follows current consumption", () => {
+  for (const [fuel, low] of [["5.25", "0"], ["5", "1"], ["3", "1"], ["0", "0"]]) {
+    const harness = createWorkerHarness({
+      fuel_stock: fuel, provisions_stock: "100",
+    }, [], { applyWrites: true });
+    harness.trigger("sheet:opened");
+    assert.equal(harness.attributes.fuel_low, low);
+    if (low === "1") {
+      assert.match(harness.attributes.fuel_warning, /Мало топлива/);
+      assert.equal(harness.attributes.travel_blocked, "0");
+    } else {
+      assert.equal(harness.attributes.fuel_warning, "");
+    }
+  }
+  const harness = createWorkerHarness({
+    fuel_stock: "10", provisions_stock: "100",
+  }, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(harness.attributes.fuel_low, "0");
+  harness.trigger("clicked:toggle_illumination_mode");
+  assert.equal(harness.attributes.fuel_low, "1");
+  assert.match(harness.attributes.fuel_warning, /в запасе: 5/);
+  harness.attributes.fuel_stock = "20";
+  harness.trigger("change:fuel_stock");
+  assert.equal(harness.attributes.fuel_low, "0");
+  assert.equal(harness.attributes.fuel_warning, "");
+  harness.attributes.ship_class = "3";
+  harness.trigger("change:ship_class");
+  assert.equal(harness.attributes.fuel_low, "1");
+  assert.match(harness.attributes.fuel_warning, /расход 16/);
+  harness.attributes.fuel_stock = "1";
+  harness.trigger("change:fuel_stock");
+  assert.equal(harness.attributes.fuel_low, "1");
+  assert.equal(harness.attributes.travel_blocked, "1");
+});
+
+test("sector rollback persists across sheet reloads and preserves later resource changes", () => {
+  const harness = createWorkerHarness({
+    fuel_stock: "10", provisions_stock: "10", unrest: "2",
+    forced_mode: "1",
+  }, [], { applyWrites: true });
+  harness.trigger("clicked:travel_sector");
+  harness.trigger("clicked:travel_sector");
+  const reloaded = createWorkerHarness({
+    ...harness.attributes, forced_mode: "0", fuel_stock: "16", unrest: "7",
+  }, [], { applyWrites: true });
+  reloaded.trigger("clicked:undo_sector");
+  assert.equal(reloaded.attributes.fuel_stock, "18");
+  assert.equal(reloaded.attributes.provisions_stock, "9.5");
+  assert.equal(reloaded.attributes.unrest, "6");
+  assert.equal(reloaded.attributes.travel_sectors, "1");
+  assert.equal(reloaded.attributes.travel_watches, "0.5");
+  assert.equal(reloaded.attributes.travel_last_sector, "");
+  reloaded.trigger("clicked:undo_sector");
+  assert.equal(reloaded.attributes.fuel_stock, "18");
+  assert.match(reloaded.attributes.travel_status, /Нет перехода/);
+  assert.equal(reloaded.rolls.length, 0);
+});
+
+test("confirmed reset clears sectors and watches, preserving supplies, unrest and rollback", () => {
+  const harness = createWorkerHarness({
+    fuel_stock: "10", provisions_stock: "10", unrest: "2",
+  }, [], { applyWrites: true });
+  harness.trigger("clicked:travel_sector");
+  const before = { ...harness.attributes };
+  harness.trigger("clicked:reset_sectors");
+  assert.deepEqual(harness.attributes, { ...before, reset_sectors_pending: "1" });
+  harness.trigger("clicked:confirm_reset_sectors");
+  assert.deepEqual(harness.attributes, {
+    ...before, travel_sectors: "0", travel_watches: "0", reset_sectors_pending: "0",
+  });
+  harness.trigger("clicked:undo_sector");
+  assert.equal(harness.attributes.travel_sectors, "0");
+  assert.equal(harness.attributes.travel_watches, "0");
+  assert.equal(harness.attributes.fuel_stock, "10");
+  assert.equal(harness.attributes.provisions_stock, "10");
+  assert.equal(harness.attributes.unrest, "2");
+});
+
+test("reset cancellation preserves both counters and confirmation is required", () => {
+  const harness = createWorkerHarness({
+    travel_sectors: "4", travel_watches: "2.5",
+  }, [], { applyWrites: true });
+  harness.trigger("clicked:confirm_reset_sectors");
+  assert.equal(harness.writes.length, 0);
+  harness.trigger("clicked:reset_sectors");
+  harness.trigger("clicked:cancel_reset_sectors");
+  harness.trigger("clicked:confirm_reset_sectors");
+  assert.deepEqual(harness.attributes, {
+    travel_sectors: "4", travel_watches: "2.5", reset_sectors_pending: "0",
+  });
+});
+
+test("psychotherapy applies success, floors partial relief, and never makes unrest negative", () => {
+  for (const [successes, die, initial, expected] of [
+    [2, 5, "10", "5"], [1, 5, "10", "8"], [1, 1, "10", "10"],
+    [0, 5, "10", "10"], [-1, 6, "10", "10"], [3, 6, "0.5", "0"],
+  ]) {
+    const harness = createWorkerHarness({ unrest: initial }, [], {
+      applyWrites: true,
+      macroResults: { successes: { result: successes }, relief: { result: die } },
+    });
+    harness.trigger("clicked:psychotherapy");
+    assert.equal(harness.attributes.unrest, expected);
+    assert.match(harness.rolls[0], /4\+\?\{Дополнительные d6\|0\}/);
+    assert.match(harness.rolls[0], /\?\{Осложнения\|0\}/);
+    assert.equal(harness.finishes.length, 1);
+    assert.equal(harness.finishes[0].values.relief, Number(initial) - Number(expected));
+    assert.match(harness.rolls[0], /template:ouw25therapy/);
+    assert.match(harness.attributes.travel_status, /Психотерапия/);
+  }
+});
+
+test("unrest growth accepts rolled or custom amounts, caps at 25, and rejects negative input", () => {
+  for (const gain of [1, 5, 12, 18, 0.5]) {
+    const harness = createWorkerHarness({ unrest: "24" }, [], {
+      applyWrites: true, macroResults: { "Прирост": { result: gain } },
+    });
+    harness.trigger("clicked:increase_unrest");
+    assert.equal(harness.attributes.unrest, String(Math.min(25, 24 + gain)));
+    assert.equal(harness.attributes.travel_status, `Смута увеличена на ${Math.min(1, gain)}.`);
+    assert.match(harness.rolls[0], /\+d6,1d6\|\+2d6,2d6\|\+3d6,3d6/);
+    assert.match(harness.rolls[0], /Количество смуты&#124;1&#125;/);
+    assert.equal(harness.finishes.length, 1);
+  }
+  const invalid = createWorkerHarness({ unrest: "4" }, [], {
+    applyWrites: true, macroResults: { "Прирост": { result: -3 } },
+  });
+  invalid.trigger("clicked:increase_unrest");
+  assert.equal(invalid.attributes.unrest, "4");
+  assert.match(invalid.attributes.travel_status, /неотрицательное/);
+});
+
+test("unrest clamps manual and previously stored values and styles the rounded display", () => {
+  const harness = createWorkerHarness({ unrest: "30" }, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(harness.attributes.unrest, "25");
+  assert.equal(harness.attributes.unrest_display, "25");
+  for (const [exact, display, high, max] of [
+    ["19", "19", "0", "0"], ["19.5", "20", "1", "0"],
+    ["20", "20", "1", "0"], ["24", "24", "1", "0"],
+    ["24.5", "25", "1", "1"], ["25", "25", "1", "1"], ["40", "25", "1", "1"],
+  ]) {
+    harness.attributes.unrest_display = exact;
+    harness.trigger("change:unrest_display", { sourceType: "player" });
+    assert.equal(harness.attributes.unrest, String(Math.min(25, Number(exact))));
+    assert.equal(harness.attributes.unrest_display, display);
+    assert.equal(harness.attributes.unrest_high, high);
+    assert.equal(harness.attributes.unrest_max, max);
+  }
+});
+
+test("sector rollback removes only the unrest actually added at the cap", () => {
+  for (const [initial, gained] of [["24.5", 0.5], ["25", 0]]) {
+    const harness = createWorkerHarness({
+      unrest: initial, fuel_stock: "100", provisions_stock: "100",
+    }, [], { applyWrites: true });
+    harness.trigger("clicked:travel_sector");
+    assert.equal(harness.attributes.unrest, "25");
+    assert.equal(JSON.parse(harness.attributes.travel_last_sector).unrest, gained);
+    harness.trigger("clicked:undo_sector");
+    assert.equal(harness.attributes.unrest, initial);
+  }
 });
 
 test("forced mode is blocked by the worn-engine flaw", () => {
@@ -309,6 +670,25 @@ test("forced mode is blocked by the worn-engine flaw", () => {
 
   assert.equal(harness.rolls.length, 0);
   assert.ok(harness.writes.some((write) => write.forced_mode === "0"));
+});
+
+test("travel button does not enable boost for a worn engine", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0",
+    crew_count: "10",
+    forced_mode: "0",
+    illumination_mode: "0",
+    ship_flaw_1: "worn_engine",
+    unrest: "0",
+    cargo_load: "0",
+    hold_bonus: "0",
+  }, []);
+
+  harness.trigger("clicked:toggle_forced_mode");
+
+  assert.equal(harness.rolls.length, 0);
+  assert.equal(harness.writes[0].forced_mode, undefined);
+  assert.match(harness.writes[0].travel_status, /двигло/);
 });
 
 test("ship calculations show doubled illumination fuel and warning thresholds", () => {
@@ -354,4 +734,50 @@ test("crew changes refresh the fractional speed and low-crew indicator", () => {
   assert.equal(ship.crew_progress, "40");
   assert.equal(ship.crew_low, "1");
   assert.equal(ship.crew_meter_label, "4 / 10");
+});
+
+test("crew capacity warning includes exactly half without changing the speed threshold", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0", crew_count: "6",
+  }, [], { applyWrites: true });
+  for (const [crew, warning, speed] of [
+    ["6", "0", "1"], ["5", "1", "1"], ["4", "1", "0.5"], ["10", "0", "1"],
+  ]) {
+    harness.attributes.crew_count = crew;
+    harness.trigger("change:crew_count");
+    assert.equal(harness.attributes.crew_half_or_less, warning);
+    assert.equal(harness.attributes.ship_speed, speed);
+  }
+  harness.attributes.ship_class = "1";
+  harness.attributes.crew_count = "8";
+  harness.trigger("change:ship_class");
+  assert.equal(harness.attributes.crew_half_or_less, "0");
+  harness.attributes.crew_count = "7";
+  harness.trigger("change:crew_count");
+  assert.equal(harness.attributes.crew_half_or_less, "1");
+});
+
+test("no crew blocks travel without spending supplies and hiring restores movement", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0", crew_count: "0", fuel_stock: "100", provisions_stock: "100",
+    travel_sectors: "4", travel_watches: "5", unrest: "2",
+    travel_last_sector: "previous",
+  }, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(harness.attributes.crew_empty, "1");
+  assert.equal(harness.attributes.travel_blocked, "1");
+  assert.match(harness.attributes.travel_warning, /Движение дальше невозможно: не осталось матросов/);
+  const before = { ...harness.attributes };
+  harness.trigger("clicked:travel_sector");
+  assert.deepEqual(harness.attributes, {
+    ...before, travel_status: "Движение дальше невозможно: не осталось матросов.",
+  });
+  harness.attributes.crew_count = "1";
+  harness.trigger("change:crew_count");
+  assert.equal(harness.attributes.crew_empty, "0");
+  assert.equal(harness.attributes.crew_half_or_less, "1");
+  assert.equal(harness.attributes.travel_blocked, "0");
+  assert.equal(harness.attributes.travel_warning, "");
+  harness.trigger("clicked:travel_sector");
+  assert.equal(harness.attributes.travel_sectors, "5");
 });

@@ -248,7 +248,7 @@
         <div class="sheet-ship-heading">
           <label class="sheet-ship-name" data-tooltip="Название вашего кораблика">HMS «
             <input type="text" name="attr_ship_name" title="Название вашего кораблика">
-                » </label>
+                » <span class="sheet-control-tooltip" role="tooltip">Название вашего кораблика</span></label>
           <select class="sheet-ship-class-select" name="attr_ship_class" aria-label="Класс судна">
             <option value="0">нулевого класса</option>
             <option value="1">первого класса</option>
@@ -260,7 +260,7 @@
           </select>
         </div>
         <div class="sheet-wounds sheet-ship-damage">
-          <span class="sheet-checklist-title">ПОЛОМЫ</span>
+          <span class="sheet-checklist-title">ПОЛОМЫ:</span>
           <label class="sheet-damage-1"><input type="checkbox" name="attr_ship_damage_1" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
           <label class="sheet-damage-2"><input type="checkbox" name="attr_ship_damage_2" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
           <label class="sheet-damage-3"><input type="checkbox" name="attr_ship_damage_3" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
@@ -291,16 +291,30 @@
 
         <div class="sheet-ship-resources">
           <label class="sheet-ship-resource">Экипаж, шт.
+            <span class="sheet-ship-resource-value">
               <input type="number" name="attr_crew_count" min="0" step="1" value="10">
+              <span class="sheet-crew-capacity">из <span name="attr_crew_capacity">10</span></span>
+            </span>
+            <input class="sheet-hidden-state" type="checkbox" name="attr_crew_half_or_less" value="1">
+            <input class="sheet-hidden-state" type="checkbox" name="attr_crew_empty" value="1">
           </label>
           <label class="sheet-ship-resource">Провиант, мер.
-            <input type="number" name="attr_provisions_stock" min="0" step="1" value="10">
+            <input type="number" name="attr_provisions_stock" min="0" step="0.25" value="10">
+            <input class="sheet-hidden-state" type="checkbox" name="attr_provisions_empty" value="1">
           </label>
           <label class="sheet-ship-resource">Топливо, ст.
-            <input type="number" name="attr_fuel_stock" min="0" step="1" value="10">
+            <input type="number" name="attr_fuel_stock" min="0" step="any" value="10">
+            <input class="sheet-hidden-state" type="checkbox" name="attr_fuel_empty" value="1">
+            <input class="sheet-hidden-state" type="checkbox" name="attr_fuel_low" value="1">
           </label>
           <label class="sheet-ship-resource">Смуты, ед.
-              <input type="number" name="attr_unrest" min="0" max="25" step="1" value="0">
+            <span class="sheet-ship-resource-value">
+              <input type="number" name="attr_unrest_display" min="0" max="25" step="1" value="0">
+              <span>из 25</span>
+            </span>
+            <input type="hidden" name="attr_unrest" value="0">
+            <input class="sheet-hidden-state" type="checkbox" name="attr_unrest_high" value="1">
+            <input class="sheet-hidden-state" type="checkbox" name="attr_unrest_max" value="1">
           </label>
           <label class="sheet-ship-resource">Груз в трюме, ст.
             <input type="number" name="attr_cargo_load" min="0" step="1" value="0">
@@ -309,7 +323,34 @@
         <p class="sheet-field-status sheet-ship-status"><span name="attr_ship_status"></span></p>
       </div>
 
-
+      <div class="bordered-sector sheet-travel-panel">
+        <h3>В пути</h3>
+        <div class="sheet-travel-controls">
+          <input class="sheet-travel-state" type="checkbox" name="attr_forced_mode" value="1">
+          <button type="action" name="act_toggle_forced_mode">Форсаж!<span class="sheet-control-tooltip" role="tooltip">Включает или выключает форсаж и запускает проверку удачи механика. Форсаж удваивает скорость и расход топлива; отключает иллюминацию.</span></button>
+          <input class="sheet-travel-state" type="checkbox" name="attr_illumination_mode" value="1">
+          <button type="action" name="act_toggle_illumination_mode">Иллюминация<span class="sheet-control-tooltip" role="tooltip">Включает или выключает иллюминацию: двойной расход топлива и +0,5 смуты за сектор. Отключает форсаж.</span></button>
+          <input class="sheet-travel-state" type="checkbox" name="attr_travel_blocked" value="1" checked>
+          <button type="action" name="act_travel_sector">Пройти сектор<span class="sheet-control-tooltip" role="tooltip">Списывает топливо и провиант за один сектор с учётом класса, экипажа и режима. Добавляет смуту и время пути. При нехватке запасов или отсутствии матросов переход не выполняется.</span></button>
+          <button type="action" name="act_travel_sector_blocked" disabled>Пройти сектор<span class="sheet-control-tooltip" role="tooltip">Переход недоступен. Проверьте предупреждение ниже: для перехода нужны матросы, топливо и провиант.</span></button>
+          <button type="action" name="act_undo_sector">Откатить сектор<span class="sheet-control-tooltip" role="tooltip">Один раз отменяет последний переход: возвращает потраченные запасы, вычитает добавленные смуту и время. Не отменяет броски и сохраняет прочие изменения запасов.</span></button>
+          <button type="action" name="act_reset_sectors">Обнулить счётчик<span class="sheet-control-tooltip" role="tooltip">Запрашивает подтверждение обнуления счётчиков секторов и вахт в пути. Не меняет запасы, смуту и возможность откатить последний переход.</span></button>
+          <span class="sheet-travel-row-break" aria-hidden="true"></span>
+          <button type="action" name="act_psychotherapy">Психотерапия<span class="sheet-control-tooltip" role="tooltip">Проверка 4d6 с дополнительными костями и осложнениями. Полный успех снижает смуту на d6, частичный — на d6/2 с округлением вниз. Без ограничения по вахтам.</span></button>
+          <button type="action" name="act_increase_unrest">Нарастить смуту<span class="sheet-control-tooltip" role="tooltip">Добавляет смуту: +1, +d6, +2d6, +3d6 или указанное вами количество. Результат броска выводится в чат.</span></button>
+        </div>
+        <p class="sheet-travel-warning" role="alert"><span name="attr_travel_warning"></span></p>
+        <p class="sheet-fuel-warning" role="status"><span name="attr_fuel_warning"></span></p>
+        <input class="sheet-hidden-state" type="checkbox" name="attr_reset_sectors_pending" value="1">
+        <div class="sheet-travel-controls sheet-reset-sectors-confirmation">
+          <span>Обнулить счётчики секторов и вахт в пути?</span>
+          <button type="action" name="act_confirm_reset_sectors">Обнулить<span class="sheet-control-tooltip" role="tooltip">Подтверждает обнуление счётчиков секторов и вахт. Запасы и смута не изменятся.</span></button>
+          <button type="action" name="act_cancel_reset_sectors">Отмена<span class="sheet-control-tooltip" role="tooltip">Закрывает подтверждение без изменения счётчиков.</span></button>
+        </div>
+        <input type="hidden" name="attr_travel_last_sector" value="">
+        <p class="sheet-travel-report">Пройдено секторов: <span name="attr_travel_sectors">0</span>; вахт в пути: <span name="attr_travel_watches">0</span>.</p>
+        <p class="sheet-travel-status"><span name="attr_travel_status"></span></p>
+      </div>
 
       <div class="bordered-sector">
         <div class="sheet-ship-quality-columns">
@@ -432,6 +473,14 @@
     {{#rollTotal() computed::pool 1}}<p>Это успех, но…</p>{{/rollTotal() computed::pool 1}}
     {{#rollLess() computed::pool 1}}<p>Это провал.</p>{{/rollLess() computed::pool 1}}
     {{#risk}}<p>Риск форсажа: {{risk}}</p>{{/risk}}
+  </div>
+</rolltemplate>
+
+<rolltemplate class="sheet-rolltemplate-ouw25therapy">
+  <div class="sheet-roll-card">
+    <h3>Психотерапия</h3>
+    <p>Успехов: {{successes}}</p>
+    <p>Смута снижена на <strong>{{computed::relief}}</strong></p>
   </div>
 </rolltemplate>
 

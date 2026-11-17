@@ -16,6 +16,7 @@
   background-position: center;
   background-size: cover;
   min-height: 1080px;
+  min-width: 700px;
 }
 
 .charsheet .sheet-app  input {
@@ -93,26 +94,26 @@
   box-sizing: border-box;
   display: flex !important;
   color: #242323;
-  height: 24px;
+  height: 20px;
+  width: 20px;
   justify-content: center;
   line-height: 1;
   position: relative;
-  width: 24px;
   z-index: 2;
 }
 
 .charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-icon {
   align-items: center;
   display: none !important;
-  font-size: 18px;
-  height: 24px;
+  font-size: 28px;
+  height: 20px;
   justify-content: center;
   left: 0;
   line-height: 1;
   pointer-events: none;
   position: absolute;
   top: 0;
-  width: 24px;
+  width: 20px;
   z-index: 3;
 }
 
@@ -140,7 +141,7 @@
 }
 
 .charsheet .sheet-ship-damage .sheet-checklist-title {
-  font-size: 1.5em;
+  font-size: 1.2em;
 }
 
 .charsheet .sheet-wounds h3.sheet-checklist-title {
@@ -184,7 +185,8 @@
 
 .charsheet .sheet-panel h2,
 .charsheet .sheet-panel h3 {
-  margin-top: 0.8rem;
+    margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
   color: #6f3829;
 }
 
@@ -489,13 +491,108 @@
 }
 
 .charsheet .sheet-pension-controls button,
-.charsheet .sheet-inline-fields button {
+.charsheet .sheet-inline-fields button,
+.charsheet .sheet-travel-controls button {
   background: #6f3829;
   border: 0;
   border-radius: 0.25rem;
   color: #fff;
   cursor: pointer;
   padding: 0.45rem 0.7rem;
+}
+
+.charsheet .sheet-travel-controls {
+  align-items: center;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 0.5rem;
+}
+
+.charsheet .sheet-travel-controls .sheet-travel-state {
+  display: none !important;
+}
+
+.charsheet .sheet-travel-row-break {
+  flex: 0 0 100%;
+  height: 0;
+}
+
+.charsheet .sheet-travel-controls button {
+  flex: 0 0 auto;
+  margin: 0 !important;
+  position: relative;
+  white-space: nowrap;
+  width: auto !important;
+}
+
+.charsheet .sheet-travel-controls button[name="act_travel_sector_blocked"],
+.charsheet .sheet-travel-controls:has(input[name="attr_travel_blocked"]:checked) button[name="act_travel_sector"] {
+  display: none;
+}
+
+.charsheet .sheet-travel-controls:has(input[name="attr_travel_blocked"]:checked) button[name="act_travel_sector_blocked"] {
+  cursor: not-allowed;
+  display: block;
+  opacity: 0.6;
+}
+
+.charsheet .sheet-travel-warning {
+  color: #b3261e;
+  display: none;
+  font-weight: bold;
+  margin: 0.5rem 0 0;
+}
+
+.charsheet .sheet-travel-panel:has(input[name="attr_travel_blocked"]:checked) .sheet-travel-warning {
+  display: block;
+}
+
+.charsheet .sheet-fuel-warning {
+  color: #b85c00;
+  display: none;
+  font-weight: bold;
+  margin: 0.5rem 0 0;
+}
+
+.charsheet .sheet-cooperative-ship:has(input[name="attr_fuel_low"]:checked) .sheet-fuel-warning {
+  display: block;
+}
+
+.charsheet .sheet-ship-resource:has(input[name="attr_fuel_low"]:checked) input[name="attr_fuel_stock"] {
+  color: #b85c00;
+  font-weight: bold;
+}
+
+.charsheet .sheet-ship-resource:has(input[name="attr_fuel_empty"]:checked) input[name="attr_fuel_stock"],
+.charsheet .sheet-ship-resource:has(input[name="attr_provisions_empty"]:checked) input[name="attr_provisions_stock"] {
+  color: #b3261e;
+  font-weight: bold;
+}
+
+.charsheet .sheet-travel-controls:has(input[name="attr_forced_mode"]:checked) button[name="act_toggle_forced_mode"] {
+  background: #b3261e;
+}
+
+.charsheet .sheet-travel-controls:has(input[name="attr_illumination_mode"]:checked) button[name="act_toggle_illumination_mode"] {
+  background: #536b37;
+}
+
+.charsheet .sheet-travel-report {
+  margin-top: 1.5em;
+}
+
+.charsheet .sheet-reset-sectors-confirmation {
+  display: none;
+  margin-top: 0.5rem;
+}
+
+.charsheet input[name="attr_reset_sectors_pending"]:checked + .sheet-reset-sectors-confirmation {
+  display: flex;
+}
+
+.charsheet .sheet-travel-status {
+  margin: 0.4rem 0 0;
+  min-height: 1em;
 }
 
 .charsheet .sheet-inline-label {
@@ -646,10 +743,18 @@
   align-items: center;
   display: flex;
   gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .charsheet .sheet-ship-resource-value input {
-  flex: 1;
+  flex: 0 0 auto;
+}
+
+.charsheet .sheet-ship-resource:has(input[name="attr_crew_half_or_less"]:checked) input[name="attr_crew_count"],
+.charsheet .sheet-ship-resource:has(input[name="attr_unrest_high"]:checked) input[name="attr_unrest_display"],
+.charsheet .sheet-cooperative-ship:has(input[name="attr_crew_half_or_less"]:checked) span[name="attr_ship_speed"] {
+  color: #b85c00;
+  font-weight: bold;
 }
 
 .charsheet .sheet-ship-heading {
@@ -660,7 +765,7 @@
   grid-template-columns: minmax(min-content, max-content) auto max-content max-content;
   justify-content: start;
   min-width: 0;
-  overflow-x: auto;
+  overflow: visible;
   width: 100%;
 }
 
@@ -676,11 +781,11 @@
 
 .charsheet .sheet-ship-name input {
   box-sizing: border-box;
-  flex: 0 1 30ch;
-  max-width: 30ch;
+  flex: 0 1 20ch;
+  max-width: 20ch;
   min-width: 0;
   line-height: 18px;
-  width: 30ch;
+  width: 20ch;
 }
 
 .charsheet .sheet-ship-name input,
@@ -772,8 +877,14 @@
   accent-color: #b3261e;
 }
 
-.charsheet .sheet-cooperative-ship:has(input[name="attr_crew_low"]:checked) input[name="attr_crew_count"] {
+.charsheet .sheet-cooperative-ship:has(input[name="attr_crew_empty"]:checked) input[name="attr_crew_count"] {
   color: #b3261e;
+  font-weight: bold;
+}
+
+.charsheet .sheet-ship-resource:has(input[name="attr_unrest_max"]:checked) input[name="attr_unrest_display"] {
+  color: #b3261e;
+  font-weight: bold;
 }
 
 .charsheet .sheet-hidden-state {
@@ -801,9 +912,7 @@
   position: relative;
 }
 
-.charsheet .sheet-tooltip-toggle:has(input:not(:checked)):hover::after,
-.charsheet .sheet-ship-name[data-tooltip]:hover::after,
-.charsheet .sheet-ship-name[data-tooltip]:focus-within::after {
+.charsheet .sheet-tooltip-toggle:has(input:not(:checked)):hover::after {
   background: #6f3829;
   border-radius: 0.25rem;
   bottom: 100%;
@@ -816,7 +925,36 @@
   position: absolute;
   width: max-content;
   z-index: 3;
-  font-size: 0.8em;
+  font-size: 1.2em;
+}
+
+.charsheet .sheet-control-tooltip {
+  background: #6f3829;
+  border-radius: 0.25rem;
+  bottom: calc(100% + 0.35rem);
+  box-sizing: border-box;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: normal;
+  left: 0;
+  line-height: 1.4;
+  padding: 0.4rem 0.6rem;
+  pointer-events: none;
+  position: absolute;
+  text-align: left;
+  transition: visibility 0s;
+  visibility: hidden;
+  white-space: normal;
+  width: 18rem;
+  z-index: 20;
+}
+
+.charsheet .sheet-travel-controls button:hover > .sheet-control-tooltip,
+.charsheet .sheet-travel-controls button:focus-visible > .sheet-control-tooltip,
+.charsheet .sheet-ship-name:hover > .sheet-control-tooltip,
+.charsheet .sheet-ship-name:focus-within > .sheet-control-tooltip {
+  transition-delay: 1s;
+  visibility: visible;
 }
 
 .charsheet .sheet-app:has(select[name="attr_past"] option[value="hard_worker"]:checked) .sheet-wound-fourth,
@@ -921,7 +1059,8 @@
   display: block;
 }
 
-.charsheet .sheet-rolltemplate-ouw25 .sheet-roll-card {
+.charsheet .sheet-rolltemplate-ouw25 .sheet-roll-card,
+.sheet-rolltemplate-ouw25therapy .sheet-roll-card {
   background: #f3efe3;
   border: 1px solid #9a806a;
   border-radius: 0.35rem;

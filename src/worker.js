@@ -80,14 +80,22 @@
       crew_progress: "0",
       crew_meter_label: "",
       crew_low: "0",
+      crew_half_or_less: "0",
+      crew_empty: "0",
       unrest_progress: "0",
       unrest_meter_label: "",
+      unrest_display: "",
       unrest_high: "0",
+      unrest_max: "0",
+      travel_blocked: "1",
+      travel_warning: message,
+      fuel_low: "0",
+      fuel_warning: "",
       ship_status: message,
     });
   }
 
-  function updateShip() {
+  function updateShip(onComplete) {
     const damageNames = Array.from({ length: 11 }, (_, index) => `ship_damage_${index + 1}`);
     const names = [
       "ship_class", "crew_count", "forced_mode", "illumination_mode", "unrest",
@@ -136,6 +144,23 @@
           findDuplicates(flaws) ? "Недостатки судна нельзя выбирать повторно." : "",
         ].filter(Boolean).join(" ");
         const equipmentDescriptionText = equipmentDescription(values);
+        const fuelStock = Number(values.fuel_stock || "0");
+        const provisionsStock = Number(values.provisions_stock || "0");
+        const fuelLow = fuelStock > 0 && fuelStock <= stats.fuel * 5;
+        const shortages = [];
+        if (stats.crew === 0) {
+          shortages.push("Движение дальше невозможно: не осталось матросов.");
+        }
+        if (fuelStock < stats.fuel) {
+          shortages.push(fuelStock === 0
+            ? "Топливо закончилось."
+            : `Недостаточно топлива: осталось ${fuelStock}, требуется ${stats.fuel}.`);
+        }
+        if (provisionsStock < stats.provisions) {
+          shortages.push(provisionsStock === 0
+            ? "Провиант закончился."
+            : `Недостаточно провианта: осталось ${provisionsStock}, требуется ${stats.provisions}.`);
+        }
 
         setAttrs({
           ship_speed: String(stats.speed),
@@ -152,16 +177,29 @@
           crew_progress: String(stats.crewProgress),
           crew_meter_label: `${stats.crew} / ${stats.crewCapacity}`,
           crew_low: stats.crewLow ? "1" : "0",
+          crew_half_or_less: stats.crew * 2 <= stats.crewCapacity ? "1" : "0",
+          crew_empty: stats.crew === 0 ? "1" : "0",
           unrest_progress: String(stats.unrestProgress),
-          unrest_meter_label: `${stats.unrest} / 25`,
-          unrest_high: stats.unrestHigh ? "1" : "0",
+          unrest_meter_label: `${Math.ceil(stats.unrest)} / 25`,
+          unrest_display: String(Math.ceil(stats.unrest)),
+          unrest: String(stats.unrest),
+          unrest_high: Math.ceil(stats.unrest) >= 20 ? "1" : "0",
+          unrest_max: Math.ceil(stats.unrest) >= 25 ? "1" : "0",
           ship_merit_description: Ouw25Rules.describeMany("shipMerit", merits),
           ship_flaw_description: Ouw25Rules.describeMany("shipFlaw", flaws),
           equipment_description: equipmentDescriptionText,
-          travel_status: [
-            forced ? "Форсаж включён: требуется проверка удачи механика при каждом переключении." : "",
-          ].filter(Boolean).join(" "),
+          fuel_empty: fuelStock === 0 ? "1" : "0",
+          fuel_low: fuelLow ? "1" : "0",
+          fuel_warning: fuelLow
+            ? `Мало топлива. Полных секторов в запасе: ${Math.floor(fuelStock / stats.fuel)} (расход ${stats.fuel} ст./сектор).`
+            : "",
+          provisions_empty: provisionsStock === 0 ? "1" : "0",
+          travel_blocked: shortages.length ? "1" : "0",
+          travel_warning: shortages.length ? `${shortages.join(" ")} Переход недоступен.` : "",
+          travel_status: "",
           ship_status: status,
+        }, { silent: true }, function () {
+          if (typeof onComplete === "function") onComplete();
         });
       } catch (error) {
         clearShipStats(error.message);
@@ -169,63 +207,28 @@
     });
   }
 
-  function readDiceCount(callback) {
-    const query = "!{{query=[[0[answer=?{Кости проверки механика|4|5|6|7|8|9|10}]]}}";
-    startRoll(query, function (results) {
-      const answer = results.results.query.expression
-        .replace(/^.*?answer=/, "")
-        .replace(/\].*$/, "");
+  function rollForcedCheck(isEnabling) {
+    const roll = [
+      "&{template:default}",
+      `{{name=${isEnabling ? "Включение" : "Выключение"} форсажа}}`,
+      "{{Успехов=[[ [[ [[4+?{Дополнительные d6|0}]]d6>6 ]] - ?{Осложнения|0} ]]}}",
+      "{{Риск=+1 полом}}",
+    ].join(" ");
+
+    startRoll(roll, function (results) {
       finishRoll(results.rollId);
-      callback(answer);
     });
   }
 
-  function rollForcedCheck(isEnabling) {
-    getAttrs(["ce_pre_deduction"], function (values) {
-      readDiceCount(function (diceValue) {
-        let input;
-        try {
-          input = Ouw25Rules.parseCollisionInput(diceValue, values.ce_pre_deduction || "0");
-        } catch (error) {
-          setAttrs({ travel_status: error.message });
-          return;
-        }
-
-        const roll = [
-          "&{template:ouw25}",
-          `{{title=Проверка удачи: ${isEnabling ? "включение" : "выключение"} форсажа}}`,
-          `{{pool=[[${input.diceCount}d6]]}}`,
-          `{{pre_deduction=${input.preDeduction}}}`,
-          "{{risk=При провале механик получает +1 полом ходовой части.}}",
-        ].join(" ");
-
-        startRoll(roll, function (results) {
-          try {
-            const outcome = Ouw25Rules.resolveCollision(
-              results.results.pool.dice,
-              input.preDeduction
-            );
-            finishRoll(results.rollId, { pool: outcome.remaining });
-            const labels = {
-              success: "Проверка удачи: успех.",
-              partial: "Проверка удачи: успех, но…",
-              failure: "Проверка удачи: провал.",
-            };
-            setAttrs({ travel_status: labels[outcome.outcome] });
-          } catch (error) {
-            setAttrs({ travel_status: error.message });
-          }
-        });
-      });
-    });
+  function hasWornEngine(values) {
+    return ["ship_flaw_1", "ship_flaw_2", "ship_flaw_3", "ship_flaw_4"]
+      .some((name) => values[name] === "worn_engine");
   }
 
   function onForcedModeChange(eventInfo) {
     const enabling = isChecked(eventInfo && eventInfo.newValue);
     getAttrs(["illumination_mode", "ship_flaw_1", "ship_flaw_2", "ship_flaw_3", "ship_flaw_4"], function (values) {
-      const wornEngine = ["ship_flaw_1", "ship_flaw_2", "ship_flaw_3", "ship_flaw_4"]
-        .some((name) => values[name] === "worn_engine");
-      if (enabling && wornEngine) {
+      if (enabling && hasWornEngine(values)) {
         setAttrs({ forced_mode: "0", travel_status: Ouw25Rules.describe("shipFlaw", "worn_engine") });
         updateShip();
         return;
@@ -245,6 +248,174 @@
       setAttrs({ forced_mode: "0" });
     }
     updateShip();
+  }
+
+  function toggleForcedMode() {
+    getAttrs([
+      "forced_mode", "illumination_mode",
+      "ship_flaw_1", "ship_flaw_2", "ship_flaw_3", "ship_flaw_4",
+    ], function (values) {
+      const enabling = !isChecked(values.forced_mode);
+      if (enabling && hasWornEngine(values)) {
+        setAttrs({ travel_status: Ouw25Rules.describe("shipFlaw", "worn_engine") });
+        return;
+      }
+
+      setAttrs({
+        forced_mode: enabling ? "1" : "0",
+        ...(enabling ? { illumination_mode: "0" } : {}),
+      }, { silent: true }, function () {
+        updateShip();
+        rollForcedCheck(enabling);
+      });
+    });
+  }
+
+  function toggleIlluminationMode() {
+    getAttrs(["illumination_mode"], function (values) {
+      const enabling = !isChecked(values.illumination_mode);
+      setAttrs({
+        illumination_mode: enabling ? "1" : "0",
+        ...(enabling ? { forced_mode: "0" } : {}),
+      }, { silent: true }, updateShip);
+    });
+  }
+
+  function saveTravelAction(updates, message) {
+    if (updates.unrest !== undefined) {
+      updates.unrest = String(Ouw25Rules.parseUnrest(updates.unrest));
+    }
+    setAttrs(updates, { silent: true }, function () {
+      updateShip(function () {
+        setAttrs({ travel_status: message });
+      });
+    });
+  }
+
+  function travelSector() {
+    getAttrs([
+      "ship_class", "crew_count", "forced_mode", "illumination_mode",
+      "unrest", "fuel_stock", "provisions_stock", "cargo_load", "hold_bonus",
+      "travel_sectors", "travel_watches", ...SHIP_SELECTIONS,
+    ], function (values) {
+      try {
+        const stats = Ouw25Rules.calculateShip({
+          shipClass: values.ship_class || "0",
+          crewCount: values.crew_count || "10",
+          forced: isChecked(values.forced_mode) && !hasWornEngine(values),
+          illumination: isChecked(values.illumination_mode),
+          unrest: values.unrest || "0",
+          cargoLoad: values.cargo_load || "0",
+          fuelStock: values.fuel_stock || "0",
+          provisionsStock: values.provisions_stock || "0",
+          holdBonus: values.hold_bonus || "0",
+          merits: [1, 2, 3, 4].map((index) => values[`ship_merit_${index}`]),
+          compartments: [1, 2, 3, 4].map((index) => values[`compartment_${index}`]),
+          damage: [],
+        });
+        const fuel = Ouw25Rules.parseResource(values.fuel_stock || "0", "Запас топлива");
+        const provisions = Ouw25Rules.parseResource(values.provisions_stock || "0", "Запас провианта");
+        if (stats.crew === 0) {
+          throw new Error("Движение дальше невозможно: не осталось матросов.");
+        }
+        if (fuel < stats.fuel || provisions < stats.provisions) {
+          throw new Error("Недостаточно топлива или провианта для перехода.");
+        }
+        const sectors = Ouw25Rules.parseResource(values.travel_sectors || "0", "Секторы");
+        const watches = Ouw25Rules.parseResource(values.travel_watches || "0", "Вахты");
+        const cost = {
+          fuel: stats.fuel, provisions: stats.provisions,
+          unrest: Math.min(stats.unrestPerSector, 25 - stats.unrest), watches: 1 / stats.speed,
+        };
+        saveTravelAction({
+          fuel_stock: String(fuel - cost.fuel),
+          provisions_stock: String(provisions - cost.provisions),
+          unrest: String(stats.unrest + cost.unrest),
+          travel_sectors: String(sectors + 1),
+          travel_watches: String(watches + cost.watches),
+          travel_last_sector: JSON.stringify(cost),
+        }, `Пройден сектор: −${cost.fuel} топлива, −${cost.provisions} провианта, +${cost.unrest} смуты, ${cost.watches} вахт.`);
+      } catch (error) {
+        setAttrs({ travel_status: error.message });
+      }
+    });
+  }
+
+  function undoSector() {
+    getAttrs([
+      "travel_last_sector", "fuel_stock", "provisions_stock", "unrest",
+      "travel_sectors", "travel_watches",
+    ], function (values) {
+      try {
+        if (!values.travel_last_sector) throw new Error("Нет перехода для отката.");
+        const cost = JSON.parse(values.travel_last_sector);
+        for (const key of ["fuel", "provisions", "unrest", "watches"]) {
+          cost[key] = Ouw25Rules.parseResource(cost[key], "Данные последнего перехода");
+        }
+        const current = (name) => Ouw25Rules.parseResource(values[name] || "0", name);
+        saveTravelAction({
+          fuel_stock: String(current("fuel_stock") + cost.fuel),
+          provisions_stock: String(current("provisions_stock") + cost.provisions),
+          unrest: String(Math.max(0, Ouw25Rules.parseUnrest(values.unrest || "0") - cost.unrest)),
+          travel_sectors: String(Math.max(0, current("travel_sectors") - 1)),
+          travel_watches: String(Math.max(0, current("travel_watches") - cost.watches)),
+          travel_last_sector: "",
+        }, "Последний сектор отменён. Броски в чате не отменены.");
+      } catch (error) {
+        setAttrs({ travel_status: error.message });
+      }
+    });
+  }
+
+  function psychotherapy() {
+    startRoll([
+      "&{template:ouw25therapy}",
+      "{{successes=[[ [[ [[4+?{Дополнительные d6|0}]]d6>6 ]] - ?{Осложнения|0} ]]}}",
+      "{{relief=[[1d6]]}}",
+    ].join(" "), function (results) {
+      try {
+        const successes = results.results.successes.result;
+        const die = results.results.relief.result;
+        if (!Number.isInteger(successes) || !Number.isInteger(die) || die < 1 || die > 6) {
+          throw new Error("Не удалось прочитать результат психотерапии.");
+        }
+        const reduction = successes >= 2 ? die : successes === 1 ? Math.floor(die / 2) : 0;
+        getAttrs(["unrest"], function (values) {
+          try {
+            const unrest = Ouw25Rules.parseUnrest(values.unrest || "0");
+            const actualReduction = Math.min(unrest, reduction);
+            saveTravelAction({ unrest: String(unrest - actualReduction) },
+              `Психотерапия: смута снижена на ${actualReduction}.`);
+            finishRoll(results.rollId, { relief: actualReduction });
+          } catch (error) {
+            finishRoll(results.rollId, { relief: 0 });
+            setAttrs({ travel_status: error.message });
+          }
+        });
+      } catch (error) {
+        finishRoll(results.rollId, { relief: 0 });
+        setAttrs({ travel_status: error.message });
+      }
+    });
+  }
+
+  function increaseUnrest() {
+    startRoll([
+      "&{template:default} {{name=Нарастить смуту}}",
+      "{{Прирост=[[?{Прирост смуты|+1,1|+d6,1d6|+2d6,2d6|+3d6,3d6|Своё количество,?{Количество смуты&#124;1&#125;}]]}}",
+    ].join(" "), function (results) {
+      finishRoll(results.rollId);
+      getAttrs(["unrest"], function (values) {
+        try {
+          const gain = Ouw25Rules.parseResource(results.results["Прирост"].result, "Прирост смуты");
+          const unrest = Ouw25Rules.parseUnrest(values.unrest || "0");
+          const nextUnrest = Math.min(25, unrest + gain);
+          saveTravelAction({ unrest: String(nextUnrest) }, `Смута увеличена на ${nextUnrest - unrest}.`);
+        } catch (error) {
+          setAttrs({ travel_status: error.message });
+        }
+      });
+    });
   }
 
   on("clicked:pension_deposit", function () {
@@ -270,6 +441,18 @@
   });
   on("change:cooperative_budget", function () {
     setMoneyStatus("cooperative_budget", "cooperative_budget_status", "Оперативный бюджет");
+  });
+
+  on("change:unrest_display", function (eventInfo) {
+    if (!eventInfo || eventInfo.sourceType !== "player") return;
+    getAttrs(["unrest_display"], function (values) {
+      try {
+        const unrest = Ouw25Rules.parseUnrest(values.unrest_display);
+        setAttrs({ unrest: String(unrest) }, { silent: true }, updateShip);
+      } catch (error) {
+        setAttrs({ ship_status: error.message });
+      }
+    });
   });
 
   on("clicked:roll_collision", function () {
@@ -323,4 +506,26 @@
   );
   on("change:forced_mode", onForcedModeChange);
   on("change:illumination_mode", onIlluminationModeChange);
+  on("clicked:toggle_forced_mode", toggleForcedMode);
+  on("clicked:toggle_illumination_mode", toggleIlluminationMode);
+  on("clicked:travel_sector", travelSector);
+  on("clicked:undo_sector", undoSector);
+  on("clicked:reset_sectors", function () {
+    setAttrs({ reset_sectors_pending: "1" });
+  });
+  on("clicked:confirm_reset_sectors", function () {
+    getAttrs(["reset_sectors_pending"], function (values) {
+      if (!isChecked(values.reset_sectors_pending)) return;
+      setAttrs({
+        travel_sectors: "0",
+        travel_watches: "0",
+        reset_sectors_pending: "0",
+      });
+    });
+  });
+  on("clicked:cancel_reset_sectors", function () {
+    setAttrs({ reset_sectors_pending: "0" });
+  });
+  on("clicked:psychotherapy", psychotherapy);
+  on("clicked:increase_unrest", increaseUnrest);
 })();
