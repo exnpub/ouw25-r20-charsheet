@@ -308,6 +308,47 @@
   row-gap: 0.6rem;
 }
 
+.charsheet .sheet-cooperative-ship > .sheet-inline-fields {
+  column-gap: 0.5rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  position: relative;
+}
+
+.charsheet .sheet-cooperative-ship .sheet-ship-heading {
+  align-items: center !important;
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  gap: 0.1rem !important;
+  grid-column: 1 / 4;
+  justify-content: flex-start !important;
+}
+
+.charsheet .sheet-cooperative-ship .sheet-ship-name {
+  display: flex !important;
+  flex: 0 1 auto !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  width: auto !important;
+}
+
+.charsheet .sheet-cooperative-ship .sheet-ship-class-select {
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.charsheet .sheet-cooperative-ship .sheet-ship-damage {
+  column-gap: 0.2rem;
+  min-width: 0;
+  position: absolute;
+  left: calc(50% + 25px);
+  top: 0;
+  width: 50%;
+}
+
+.charsheet .sheet-cooperative-ship .sheet-hold-bonus {
+  grid-column: 1 / -1;
+}
+
 .charsheet .sheet-field-inline label {
     font-size: 1rem !important;
 }
