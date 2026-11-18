@@ -457,16 +457,12 @@ var Ouw25Rules = (function () {
     if (expansion > 0 && expansion % 100 !== 0) {
       throw new Error("Бонус вместимости: укажите сумму, кратную 100 стаунтам.");
     }
-    if (forced && illumination) {
-      throw new Error("Форсаж и иллюминация не включаются одновременно.");
-    }
-
     const doubledCrew = crew * 2;
     const crewBand = doubledCrew > ship.crew
       ? "above-half"
       : doubledCrew === ship.crew ? "half" : "below-half";
     const belowHalf = crewBand === "below-half";
-    const fuel = ship.fuel * (belowHalf ? 2 : 1) * (forced || illumination ? 2 : 1);
+    const fuel = ship.fuel * (belowHalf ? 2 : 1) * (forced ? 2 : 1) * (illumination ? 2 : 1);
     let provisions = ship.provisions * (crewBand === "above-half" ? 1 : 0.5);
     if (forced && !belowHalf) provisions *= 0.5;
 

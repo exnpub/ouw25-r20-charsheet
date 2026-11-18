@@ -134,6 +134,25 @@ test("debts ignore blank, invalid and negative creditor amounts", () => {
   assert.equal(harness.writes[0].debt_total, "100");
 });
 
+test("debt size steps follow total debt across thresholds and row removal", () => {
+  const attributes = {
+    repeating_creditors_first_creditor_amount: "9999",
+    repeating_creditors_second_creditor_amount: "0",
+  };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(attributes.debt_step_bits, "");
+  attributes.repeating_creditors_second_creditor_amount = "1";
+  harness.trigger("change:repeating_creditors:creditor_amount");
+  assert.equal(attributes.debt_step_bits, "bit0");
+  attributes.repeating_creditors_second_creditor_amount = "20001";
+  harness.trigger("change:repeating_creditors:creditor_amount");
+  assert.equal(attributes.debt_step_bits, "bit0 bit1");
+  delete attributes.repeating_creditors_second_creditor_amount;
+  harness.trigger("remove:repeating_creditors");
+  assert.equal(attributes.debt_step_bits, "");
+});
+
 test("pension clears the legacy success message on open without erasing other statuses", () => {
   for (const status of ["Счёт пополнен.", "Поздравляем! Новые пенсионные пороги: 30 000 ог.", "Сумма пополнения должна быть положительной."]) {
     const attributes = { pension_balance: "30000", pension_status: status };
@@ -144,17 +163,51 @@ test("pension clears the legacy success message on open without erasing other st
   }
 });
 
-test("pension worker applies a validated deposit and clears the deposit field", () => {
-  const harness = createWorkerHarness(
-    { pension_balance: "15", pension_deposit: "5" },
-    []
-  );
+test("pension applies the deposit once and only after confirmation", () => {
+  const attributes = { pension_balance: "15", pension_deposit: "5" };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
 
+  harness.trigger("clicked:confirm_pension_deposit");
+  assert.equal(harness.writes.length, 0);
   harness.trigger("clicked:pension_deposit");
+  assert.equal(attributes.pension_deposit_amount, "5");
+  assert.equal(attributes.pension_balance, "15");
+  harness.trigger("clicked:confirm_pension_deposit");
+  assert.equal(attributes.pension_balance, "20");
+  assert.equal(attributes.pension_deposit, "");
+  assert.equal(attributes.pension_status, "");
+  const writes = harness.writes.length;
+  harness.trigger("clicked:confirm_pension_deposit");
+  assert.equal(harness.writes.length, writes);
+});
 
-  assert.equal(harness.writes[0].pension_balance, "20");
-  assert.equal(harness.writes[0].pension_deposit, "");
-  assert.equal(harness.writes[0].pension_status, "");
+test("pension cancellation or an edited amount never applies a pending deposit", () => {
+  const attributes = { pension_balance: "15", pension_deposit: "5" };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("clicked:pension_deposit");
+  harness.trigger("clicked:cancel_pension_deposit");
+  harness.trigger("clicked:confirm_pension_deposit");
+  assert.equal(attributes.pension_balance, "15");
+  assert.equal(attributes.pension_deposit, "5");
+  harness.trigger("clicked:pension_deposit");
+  attributes.pension_deposit = "6";
+  harness.trigger("clicked:confirm_pension_deposit");
+  assert.equal(attributes.pension_balance, "15");
+  assert.equal(attributes.pension_deposit_pending, "0");
+  assert.match(attributes.pension_status, /Сумма изменилась/);
+});
+
+test("pension size follows existing balances, deposits and direct balance changes", () => {
+  const attributes = { pension_balance: "9999", pension_deposit: "1" };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(attributes.pension_step_bits, "");
+  harness.trigger("clicked:pension_deposit");
+  harness.trigger("clicked:confirm_pension_deposit");
+  assert.equal(attributes.pension_step_bits, "bit0");
+  attributes.pension_balance = "30000";
+  harness.trigger("change:pension_balance");
+  assert.equal(attributes.pension_step_bits, "bit0 bit1");
 });
 
 test("pension worker preserves the balance when the deposit is invalid", () => {
@@ -173,6 +226,7 @@ test("pension milestones congratulate only newly crossed thresholds and persist 
   const attributes = { pension_balance: "29999", pension_deposit: "60002" };
   const harness = createWorkerHarness(attributes, [], { applyWrites: true });
   harness.trigger("clicked:pension_deposit");
+  harness.trigger("clicked:confirm_pension_deposit");
   assert.equal(attributes.pension_balance, "90001");
   assert.match(attributes.pension_status, /Поздравляем/);
   assert.match(attributes.pension_status.replace(/\s/g, ""), /30000,60000,90000/);
@@ -180,15 +234,18 @@ test("pension milestones congratulate only newly crossed thresholds and persist 
   assert.match(attributes.pension_stage_status.replace(/\s/g, ""), /29999ог/);
   attributes.pension_deposit = "1";
   harness.trigger("clicked:pension_deposit");
+  harness.trigger("clicked:confirm_pension_deposit");
   assert.equal(attributes.pension_status, "");
   attributes.pension_balance = "239999";
   attributes.pension_deposit = "1";
   harness.trigger("clicked:pension_deposit");
+  harness.trigger("clicked:confirm_pension_deposit");
   assert.match(attributes.pension_status, /завершить контракт/);
   harness.trigger("sheet:opened");
   assert.match(attributes.pension_stage_status, /Поздравляем/);
   attributes.pension_deposit = "30000";
   harness.trigger("clicked:pension_deposit");
+  harness.trigger("clicked:confirm_pension_deposit");
   assert.equal(attributes.pension_status, "");
   assert.match(attributes.pension_stage_status, /240 000/);
 });
@@ -564,7 +621,7 @@ test("forced-mode changes finish the standard macro on both transitions", () => 
   assert.ok(harness.finishes.every((finish) => finish.rollId === "test-macro"));
 });
 
-test("travel buttons switch modes, update illumination fuel, and roll on both boost transitions", () => {
+test("travel buttons switch modes independently and roll on both boost transitions", () => {
   const illumination = createWorkerHarness({
     ship_class: "2",
     crew_count: "20",
@@ -577,12 +634,14 @@ test("travel buttons switch modes, update illumination fuel, and roll on both bo
 
   illumination.trigger("clicked:toggle_illumination_mode");
 
-  assert.ok(illumination.writes.some((write) =>
-    write.illumination_mode === "1" && write.forced_mode === "0"
-  ));
+  assert.equal(illumination.attributes.illumination_mode, "1");
+  assert.equal(illumination.attributes.forced_mode, "1");
   const illuminatedShip = illumination.writes.find((write) => write.ship_fuel_rate);
-  assert.equal(illuminatedShip.ship_fuel_rate, "4");
-  assert.equal(illuminatedShip.ship_speed, "1");
+  assert.equal(illuminatedShip.ship_fuel_rate, "8");
+  assert.equal(illuminatedShip.ship_speed, "2");
+  illumination.trigger("clicked:toggle_illumination_mode");
+  assert.equal(illumination.attributes.illumination_mode, "0");
+  assert.equal(illumination.attributes.forced_mode, "1");
 
   const enabling = createWorkerHarness({
     ship_class: "0",
@@ -593,13 +652,15 @@ test("travel buttons switch modes, update illumination fuel, and roll on both bo
     unrest: "0",
     cargo_load: "0",
     hold_bonus: "0",
-  }, [6, 6, 1, 2], { applyWrites: true });
+  }, [6, 6, 1, 2], {
+    applyWrites: true, macroResults: { "Успехов": { result: 2 } },
+  });
 
   enabling.trigger("clicked:toggle_forced_mode");
 
-  assert.ok(enabling.writes.some((write) =>
-    write.forced_mode === "1" && write.illumination_mode === "0"
-  ));
+  assert.equal(enabling.attributes.forced_mode, "1");
+  assert.equal(enabling.attributes.illumination_mode, "1");
+  assert.equal(enabling.attributes.ship_fuel_rate, "4");
   assert.equal(enabling.rolls.length, 1);
   assert.match(enabling.rolls[0], /Включение форсажа/);
 
@@ -607,7 +668,7 @@ test("travel buttons switch modes, update illumination fuel, and roll on both bo
     ship_class: "0",
     crew_count: "10",
     forced_mode: "1",
-    illumination_mode: "0",
+    illumination_mode: "1",
     ce_pre_deduction: "0",
     unrest: "0",
     cargo_load: "0",
@@ -617,8 +678,129 @@ test("travel buttons switch modes, update illumination fuel, and roll on both bo
   disabling.trigger("clicked:toggle_forced_mode");
 
   assert.ok(disabling.writes.some((write) => write.forced_mode === "0"));
+  assert.equal(disabling.attributes.illumination_mode, "1");
+  assert.equal(disabling.attributes.ship_fuel_rate, "2");
   assert.equal(disabling.rolls.length, 1);
   assert.match(disabling.rolls[0], /Выключение форсажа/);
+});
+
+test("boost enables only after a successful check and leaves illumination untouched", () => {
+  for (const event of ["clicked:toggle_forced_mode", "change:forced_mode"]) {
+    for (const successes of [-1, 0, 1, 2, undefined]) {
+      const harness = createWorkerHarness({
+        ship_class: "0", crew_count: "10", illumination_mode: "1",
+        forced_mode: event === "change:forced_mode" ? "1" : "0",
+        fuel_stock: "10", provisions_stock: "10", unrest: "0",
+      }, [], {
+        applyWrites: true,
+        macroResults: successes === undefined ? {} : { "Успехов": { result: successes } },
+      });
+
+      harness.trigger(event, { newValue: "1", sourceType: "player" });
+
+      const enabled = successes > 0;
+      assert.equal(harness.attributes.forced_mode, enabled ? "1" : "0");
+      assert.equal(harness.attributes.illumination_mode, "1");
+      assert.equal(harness.attributes.ship_speed, enabled ? "2" : "1");
+      assert.equal(harness.attributes.ship_fuel_rate, enabled ? "4" : "2");
+      assert.equal(harness.rolls.length, 1);
+      assert.equal(harness.finishes.length, 1);
+      if (!enabled) {
+        assert.ok(harness.writes.every((write) => write.forced_mode !== "1"));
+        assert.match(harness.attributes.travel_status, /Форсаж не включён/);
+      }
+    }
+  }
+});
+
+test("only full failures add one damage on both boost transitions and event paths", () => {
+  for (const source of ["clicked:toggle_forced_mode", "change:forced_mode"]) {
+    for (const enabling of [true, false]) {
+      for (const successes of [-1, 0, 1, 2, undefined]) {
+        const harness = createWorkerHarness({
+          ship_class: "0", crew_count: "10", illumination_mode: "1",
+          forced_mode: (source === "change:forced_mode" ? enabling : !enabling) ? "1" : "0",
+          fuel_stock: "10", provisions_stock: "10", unrest: "0",
+          ship_damage_1: "1", ship_damage_3: "1",
+        }, [], {
+          applyWrites: true,
+          macroResults: successes === undefined ? {} : { "Успехов": { result: successes } },
+        });
+
+        harness.trigger(source, { newValue: enabling ? "1" : "0", sourceType: "player" });
+
+        const failed = Number.isInteger(successes) && successes <= 0;
+        const damageWrites = harness.writes.flatMap((write) =>
+          Object.keys(write).filter((name) => /^ship_damage_\d+$/.test(name)));
+        assert.deepEqual(damageWrites, failed ? ["ship_damage_2"] : []);
+        assert.equal(harness.attributes.ship_damage_1, "1");
+        assert.equal(harness.attributes.ship_damage_3, "1");
+        assert.equal(harness.attributes.ship_durability, failed ? "3" : "2");
+        assert.equal(harness.attributes.forced_mode, enabling && successes > 0 ? "1" : "0");
+        assert.equal(harness.attributes.illumination_mode, "1");
+        assert.equal(harness.finishes.length, 1);
+        if (failed) assert.match(harness.attributes.travel_status, /Добавлен 1 полом/);
+      }
+    }
+  }
+});
+
+test("repeated boost failures fill damage gaps and report a full damage track", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0", crew_count: "10", forced_mode: "0",
+    ship_damage_1: "1", ship_damage_3: "1",
+  }, [], { applyWrites: true, macroResults: { "Успехов": { result: 0 } } });
+
+  for (const expected of [2, 4, 5, 6, 7, 8, 9, 10, 11]) {
+    harness.trigger("clicked:toggle_forced_mode");
+    assert.equal(harness.attributes[`ship_damage_${expected}`], "1");
+  }
+  assert.equal(harness.attributes.ship_durability, "11");
+  const writes = harness.writes.length;
+  harness.trigger("clicked:toggle_forced_mode");
+  assert.ok(harness.writes.slice(writes).every((write) =>
+    !Object.keys(write).some((name) => /^ship_damage_/.test(name))));
+  assert.equal(harness.attributes.ship_durability, "11");
+  assert.match(harness.attributes.travel_status, /Все ячейки поломов уже отмечены/);
+});
+
+test("opening and direct mode changes preserve simultaneous modes", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0", crew_count: "10", forced_mode: "1", illumination_mode: "1",
+    unrest: "0", cargo_load: "0", hold_bonus: "0", ce_pre_deduction: "0",
+  }, [], {
+    applyWrites: true, macroResults: { "Успехов": { result: 2 } },
+  });
+
+  for (const event of ["sheet:opened", "change:forced_mode", "change:illumination_mode"]) {
+    harness.trigger(event, { newValue: "1", sourceType: "player" });
+    assert.equal(harness.attributes.forced_mode, "1");
+    assert.equal(harness.attributes.illumination_mode, "1");
+    assert.equal(harness.attributes.ship_fuel_rate, "4");
+    assert.equal(harness.attributes.ship_speed, "2");
+  }
+});
+
+test("sector travel and undo support both modes without disabling either", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0", crew_count: "10", forced_mode: "1", illumination_mode: "1",
+    fuel_stock: "10", provisions_stock: "10", unrest: "0",
+  }, [], { applyWrites: true });
+
+  harness.trigger("clicked:travel_sector");
+  assert.equal(harness.attributes.fuel_stock, "6");
+  assert.equal(harness.attributes.provisions_stock, "9.5");
+  assert.equal(harness.attributes.unrest, "0.5");
+  assert.equal(harness.attributes.travel_watches, "0.5");
+  assert.equal(harness.attributes.forced_mode, "1");
+  assert.equal(harness.attributes.illumination_mode, "1");
+
+  harness.trigger("clicked:undo_sector");
+  assert.equal(harness.attributes.fuel_stock, "10");
+  assert.equal(harness.attributes.provisions_stock, "10");
+  assert.equal(harness.attributes.unrest, "0");
+  assert.equal(harness.attributes.forced_mode, "1");
+  assert.equal(harness.attributes.illumination_mode, "1");
 });
 
 test("sector travel uses current class, crew and mode and supports fractional stocks", () => {
@@ -1059,15 +1241,23 @@ test("crew capacity warning includes exactly half without changing the speed thr
     harness.attributes.crew_count = crew;
     harness.trigger("change:crew_count");
     assert.equal(harness.attributes.crew_half_or_less, warning);
+    assert.equal(harness.attributes.crew_warning,
+      warning === "1" ? `Мало матросов. Экипаж: ${crew} из 10.` : "");
     assert.equal(harness.attributes.ship_speed, speed);
   }
   harness.attributes.ship_class = "1";
   harness.attributes.crew_count = "8";
   harness.trigger("change:ship_class");
   assert.equal(harness.attributes.crew_half_or_less, "0");
+  assert.equal(harness.attributes.crew_warning, "");
   harness.attributes.crew_count = "7";
   harness.trigger("change:crew_count");
   assert.equal(harness.attributes.crew_half_or_less, "1");
+  assert.equal(harness.attributes.crew_warning, "Мало матросов. Экипаж: 7 из 15.");
+  harness.attributes.crew_count = "-1";
+  harness.trigger("change:crew_count");
+  assert.equal(harness.attributes.crew_warning, "");
+  assert.equal(harness.attributes.crew_half_or_less, "0");
 });
 
 test("no crew blocks travel without spending supplies and hiring restores movement", () => {
@@ -1078,6 +1268,7 @@ test("no crew blocks travel without spending supplies and hiring restores moveme
   }, [], { applyWrites: true });
   harness.trigger("sheet:opened");
   assert.equal(harness.attributes.crew_empty, "1");
+  assert.equal(harness.attributes.crew_warning, "Мало матросов. Экипаж: 0 из 10.");
   assert.equal(harness.attributes.travel_blocked, "1");
   assert.match(harness.attributes.travel_warning, /Движение дальше невозможно: не осталось матросов/);
   const before = { ...harness.attributes };

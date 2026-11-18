@@ -1,11 +1,9 @@
 <div class="sheet-app">
   <div class="sheet-brand-banner" role="img" aria-label="Место для брендированного баннера"></div>
-
   <div class="sheet-mode-switch" role="group" aria-label="Тип листа">
-    <label class="sheet-mode-option"><input type="radio" name="attr_sheet_mode" value="merchant" checked><span>Коммерсант</span></label>
-    <label class="sheet-mode-option"><input type="radio" name="attr_sheet_mode" value="cooperative"><span>Кооператив</span></label>
+    <label class="sheet-mode-option"><input type="radio" name="attr_sheet_mode" value="cooperative"><span>⛴️ Кооператив</span></label>
+    <label class="sheet-mode-option"><input type="radio" name="attr_sheet_mode" value="merchant" checked><span>🎩 Коммерсант</span></label>
   </div>
-
   <div class="sheet-panel sheet-panel-personal">
     <div class="sheet-mode-switch sheet-personal-tabs" role="group" aria-label="Раздел коммерсанта">
       <label class="sheet-mode-option"><input type="radio" name="attr_personal_tab" value="attributes" checked><span>Атрибуты</span></label>
@@ -19,7 +17,7 @@
     <div class="sheet-personal-layout">
     <div class="sheet-personal-left sheet-inline-fields">
       <div class="sheet-choice-row">
-        <label class="sheet-field-inline">Имя-фамилия: <input type="text" name="attr_character_name"></label>
+        <label class="sheet-field-inline"><input type="text" name="attr_character_name"></label>
         <button class="sheet-random-button" type="action" name="act_random_name" aria-label="Случайные имя и фамилия">🎲<span class="sheet-control-tooltip" role="tooltip">Выбрать имя и фамилию равновероятно из опубликованного списка.</span></button>
       </div>
       <div class="sheet-card-field">
@@ -186,7 +184,6 @@
             <input class="sheet-hidden-state" type="checkbox" name="attr_past_action_4_visible" value="1">
             <button type="action" name="act_past_action_4"><span name="attr_past_action_4_label"></span></button>
           </div>
-          <p class="sheet-personal-result" role="status"><span name="attr_past_roll_result"></span></p>
         </div>
       </div>
       <div class="sheet-card-field">
@@ -213,18 +210,14 @@
           <input class="sheet-hidden-state" type="checkbox" name="attr_hiring_action_visible" value="1">
           <button type="action" name="act_hiring_action"><span name="attr_hiring_action_label"></span></button>
         </div>
-        <p class="sheet-personal-result" role="status"><span name="attr_hiring_roll_result"></span></p>
       </div>
-      <p class="sheet-field-status"><span name="attr_personal_random_status"></span></p>
     </div>
     <div class="sheet-personal-right sheet-inline-fields">
-      <div class="sheet-stat">
-
-        <h3>Долги</h3>
-        <div class="sheet-stat-value"><span name="attr_debt_total">0</span> ог.</div>
+      <div class="sheet-stat sheet-debt-card">
+        <input type="hidden" name="attr_debt_step_bits" value="">
+        <h3>Долги, всего: <span name="attr_debt_total">0</span> ог.</h3>
       </div>
-      <div class="sheet-money-field">
-<div class="sheet-subpanel">
+      <div class="sheet-subpanel sheet-money-field">
         <h3>Карманные деньги</h3>
         <div class="sheet-choice-row">
           <input type="number" name="attr_pocket_money" min="0" step="1" inputmode="numeric" aria-label="Карманные деньги">
@@ -233,23 +226,27 @@
         </div>
         <p class="sheet-field-status"><span name="attr_pocket_money_status"></span></p>
       </div>
-      </div>
-      <div class="sheet-subpanel">
-        <h3>Пенсионный счёт</h3>
-        <div class="sheet-stat-value"><span name="attr_pension_balance">0</span> ог.</div>
+      <div class="sheet-subpanel sheet-pension-card">
+        <input type="hidden" name="attr_pension_step_bits" value="">
+        <h3>Пенсионный счёт: <span name="attr_pension_balance">0</span> ог.</h3>
         <div class="sheet-inline-fields sheet-pension-controls">
           <input type="number" name="attr_pension_deposit" min="1" step="1" inputmode="numeric" aria-label="Сумма пополнения, ог.">
           <button type="action" name="act_pension_deposit">Пополнить</button>
         </div>
+        <input class="sheet-hidden-state" type="checkbox" name="attr_pension_deposit_pending" value="1">
+        <div class="sheet-inline-fields sheet-pension-confirmation" role="group" aria-label="Подтверждение пополнения">
+          <span role="status">Пополнить счёт на <span name="attr_pension_deposit_amount"></span> ог.?</span>
+          <button type="action" name="act_confirm_pension_deposit">Подтвердить</button>
+          <button type="action" name="act_cancel_pension_deposit">Отмена</button>
+        </div>
         <p class="sheet-field-status"><span name="attr_pension_status"></span></p>
         <p class="sheet-pension-stage" role="status"><span name="attr_pension_stage_status"></span></p>
-        <details class="sheet-reference-card">
+        <details class="sheet-reference-card sheet-pension-reference">
           <summary>📗 Пенсия и развитие ▼ </summary>
           <p>Пополнение счёта доступно в Олъме, Н’те Поа и Салайфе. Деньги нельзя снять. Каждые 30 000 ог. дают право на отпуск длительностью 16 окт (128 вахт), в течение которого вы можете приобрести достоинство или избавиться от недостатка. Каждое третье достоинство приходит вместе с новым недостатком. На 240 000 ог. можно завершить контракт.</p>
         </details>
       </div>
       <div class="sheet-luck-card">
-        <h3>Метки удачи</h3>
         <input type="hidden" name="attr_luck_points" value="1">
         <div class="sheet-luck-controls">
           <div class="sheet-luck-counter" tabindex="0">
@@ -264,7 +261,6 @@
         <p class="sheet-field-status"><span name="attr_luck_status"></span></p>
       </div>
       <div class="sheet-wounds-block">
-    <h3>Раны</h3>
     <div class="sheet-wounds sheet-character-wounds">
       <input class="sheet-hidden-state" type="checkbox" name="attr_wounds_two" value="1">
       <input class="sheet-hidden-state" type="checkbox" name="attr_wounds_four" value="1">
@@ -275,8 +271,6 @@
     </div>
     <label class="sheet-fragile-option"><input type="checkbox" name="attr_wound_fragile" value="1">Обделённый: выбрана малохольность (смертельна вторая рана)</label>
       </div>
-
-      <h3>Инструменты</h3>
       <details class="sheet-reference-card sheet-bargain-reference">
         <summary>🧮 Драматический торг ▼</summary>
         <p>Согласуйте цель, ставки и риски. Без броска: частичный успех стоит 1 пункт, полный — 2. Каждое осложнение добавляет 2 пункта к цене; каждые 4 преимущества снимают одно осложнение.</p>
@@ -293,6 +287,13 @@
     <p>Последняя проверка: <strong><span name="attr_ce_status">Ожидает броска.</span></strong></p>
     <p>Шестёрок выпало: <span name="attr_ce_raw_sixes"></span>; осталось после вычета: <span name="attr_ce_remaining_sixes"></span>.</p>
   </details>
+      <div class="sheet-personal-pager">
+        <div class="sheet-personal-pager-messages">
+          <p class="sheet-personal-result" role="status"><span name="attr_past_roll_result"></span></p>
+          <p class="sheet-personal-result" role="status"><span name="attr_hiring_roll_result"></span></p>
+          <p class="sheet-field-status"><span name="attr_personal_random_status"></span></p>
+        </div>
+      </div>
     </div>
   </div>
     </div>
@@ -376,7 +377,7 @@
     <div class="sheet-cooperative-attributes-layout">
       <div class="sheet-cooperative-budget-column">
         <label class="bordered-sector sheet-cooperative-budget">
-          <span class="sheet-budget-title">БЮДЖЕТ</span>
+          <span class="sheet-budget-title">БЮДЖЕТ&nbsp</span>
           <span class="sheet-budget-value"><input type="number" name="attr_cooperative_budget" min="0" step="1" inputmode="numeric"> ог.</span>
         </label>
         <p class="sheet-field-status"><span name="attr_cooperative_budget_status"></span></p>
@@ -475,7 +476,7 @@
           </select>
         </div>
         <div class="sheet-wounds sheet-ship-damage">
-          <span class="sheet-checklist-title">ПОЛОМЫ:</span>
+          <span class="sheet-checklist-title">ПОЛОМЫ:  </span>
           <label class="sheet-damage-1"><input type="checkbox" name="attr_ship_damage_1" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
           <label class="sheet-damage-2"><input type="checkbox" name="attr_ship_damage_2" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
           <label class="sheet-damage-3"><input type="checkbox" name="attr_ship_damage_3" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
@@ -489,13 +490,13 @@
           <label class="sheet-damage-11"><input type="checkbox" name="attr_ship_damage_11" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
         </div>
         <div class="sheet-ship-stats">
-          <div class="sheet-stat"><span class="sheet-stat-label">Скорость, сект. за вахту</span><span class="sheet-stat-value" name="attr_ship_speed">1</span></div>
-          <div class="sheet-stat"><span class="sheet-stat-label">Потребление топлива, на сектор</span><span class="sheet-stat-value" name="attr_ship_fuel_rate">1</span></div>
-          <div class="sheet-stat"><span class="sheet-stat-label">Потребление провианта, на сектор</span><span class="sheet-stat-value" name="attr_ship_provision_rate">1</span></div>
-          <div class="sheet-stat"><span class="sheet-stat-label">Станин, доступно</span><span class="sheet-stat-value" name="attr_stanine_count">2</span></div>
+          <div class="sheet-stat"><span class="sheet-stat-label">Скорость, сект. за вахту</span><span class="sheet-stat-value"><span name="attr_ship_speed">1</span></span></div>
+          <div class="sheet-stat"><span class="sheet-stat-label">Потребление топлива, на сектор</span><span class="sheet-stat-value"><span name="attr_ship_fuel_rate">1</span></span></div>
+          <div class="sheet-stat"><span class="sheet-stat-label">Потребление провианта, на сектор</span><span class="sheet-stat-value"><span name="attr_ship_provision_rate">1</span></span></div>
+          <div class="sheet-stat"><span class="sheet-stat-label">Станин, доступно</span><span class="sheet-stat-value"><span name="attr_stanine_count">2</span></span></div>
           <div class="sheet-stat sheet-stat-cargo">
             <span class="sheet-stat-label">Вместимость трюма, в стаунтах</span>
-            <span class="sheet-stat-value" name="attr_cargo_occupied">0</span> / <span class="sheet-stat-value" name="attr_cargo_capacity">1600</span>
+            <span class="sheet-stat-value"><span name="attr_cargo_occupied">0</span></span> <span class="sheet-stat-symbol">/</span> <span class="sheet-stat-value"><span name="attr_cargo_capacity">1600</span></span>
             <input class="sheet-hidden-state" type="checkbox" name="attr_cargo_near_full" value="1">
           </div>
         </div>
@@ -543,9 +544,9 @@
         <h3>В пути</h3>
         <div class="sheet-travel-controls">
           <input class="sheet-travel-state" type="checkbox" name="attr_forced_mode" value="1">
-          <button type="action" name="act_toggle_forced_mode">Форсаж!<span class="sheet-control-tooltip" role="tooltip">Включает или выключает форсаж и запускает проверку удачи механика. Форсаж удваивает скорость и расход топлива; отключает иллюминацию.</span></button>
+          <button type="action" name="act_toggle_forced_mode">Форсаж!<span class="sheet-control-tooltip" role="tooltip">Включает или выключает форсаж и запускает проверку удачи механика. Полный провал включения или выключения автоматически добавляет 1 полом. При провале включения форсаж остаётся выключенным. Форсаж удваивает скорость и расход топлива. При одновременной иллюминации расход топлива ×4.</span></button>
           <input class="sheet-travel-state" type="checkbox" name="attr_illumination_mode" value="1">
-          <button type="action" name="act_toggle_illumination_mode">Иллюминация<span class="sheet-control-tooltip" role="tooltip">Включает или выключает иллюминацию: двойной расход топлива и +0,5 смуты за сектор. Отключает форсаж.</span></button>
+          <button type="action" name="act_toggle_illumination_mode">Иллюминация<span class="sheet-control-tooltip" role="tooltip">Включает или выключает иллюминацию: двойной расход топлива и +0,5 смуты за сектор. При одновременном форсаже расход топлива ×4.</span></button>
           <input class="sheet-travel-state" type="checkbox" name="attr_travel_blocked" value="1" checked>
           <button type="action" name="act_travel_sector">Пройти сектор<span class="sheet-control-tooltip" role="tooltip">Списывает топливо и провиант за один сектор с учётом класса, экипажа и режима. Добавляет смуту и время пути. При нехватке запасов или отсутствии матросов переход не выполняется.</span></button>
           <button type="action" name="act_travel_sector_blocked" disabled>Пройти сектор<span class="sheet-control-tooltip" role="tooltip">Переход недоступен. Проверьте предупреждение ниже: для перехода нужны матросы, топливо и провиант.</span></button>
@@ -557,6 +558,9 @@
         </div>
         <p class="sheet-travel-warning" role="alert"><span name="attr_travel_warning"></span></p>
         <p class="sheet-fuel-warning" role="status"><span name="attr_fuel_warning"></span></p>
+        <p class="sheet-crew-warning" role="status"><span name="attr_crew_warning"></span></p>
+        <p class="sheet-unrest-warning" role="status">Смута близка к критической. Экипаж нервничает.</p>
+        <p class="sheet-unrest-critical" role="alert">Смута на максимуме! На борту царит безумие.</p>
         <input class="sheet-hidden-state" type="checkbox" name="attr_reset_sectors_pending" value="1">
         <div class="sheet-travel-controls sheet-reset-sectors-confirmation">
           <span>Обнулить счётчики секторов и вахт в пути?</span>

@@ -93,6 +93,13 @@
     return null;
   }
 
+  function balanceStepBits(amount) {
+    const steps = Math.floor(Math.min(Math.max(0, Number(amount) || 0), Number.MAX_SAFE_INTEGER) / 10000);
+    return Array.from(steps.toString(2)).reverse().flatMap((bit, index) =>
+      bit === "1" ? [`bit${index}`] : []
+    ).join(" ");
+  }
+
   function updateDebtTotal() {
     getSectionIDs("repeating_creditors", function (ids) {
       const names = ids.map((id) => `repeating_creditors_${id}_creditor_amount`);
@@ -101,17 +108,18 @@
           const amount = Number(values[name]);
           return sum + (Number.isFinite(amount) && amount >= 0 ? amount : 0);
         }, 0);
-        setAttrs({ debt_total: String(total) });
+        setAttrs({ debt_total: String(total), debt_step_bits: balanceStepBits(total) });
       });
     });
   }
 
   function updatePensionStage() {
     getAttrs(["pension_balance", "pension_status"], function (values) {
-      const updates = {};
+      const updates = { pension_step_bits: "" };
       if (values.pension_status === "Счёт пополнен.") updates.pension_status = "";
       try {
         updates.pension_stage_status = Ouw25Rules.pensionStage(values.pension_balance || "0");
+        updates.pension_step_bits = balanceStepBits(values.pension_balance);
       } catch (error) {
         updates.pension_stage_status = error.message;
       }
@@ -261,6 +269,7 @@
       crew_low: "0",
       crew_half_or_less: "0",
       crew_empty: "0",
+      crew_warning: "",
       unrest_progress: "0",
       unrest_meter_label: "",
       unrest_display: "",
@@ -295,7 +304,7 @@
       const compartments = [1, 2, 3, 4].map((index) => values[`compartment_${index}`]);
       const damage = damageNames.map((name) => isChecked(values[name]));
       let forced = isChecked(values.forced_mode);
-      let illumination = isChecked(values.illumination_mode);
+      const illumination = isChecked(values.illumination_mode);
       let modeStatus = "";
 
       if (flaws.includes("worn_engine") && forced) {
@@ -303,12 +312,6 @@
         modeStatus = "Изношенное двигло не позволяет включить форсаж.";
         setAttrs({ forced_mode: "0" });
       }
-      if (forced && illumination) {
-        illumination = false;
-        setAttrs({ illumination_mode: "0" });
-        modeStatus = "Форсаж и иллюминация — взаимоисключающие режимы.";
-      }
-
       try {
         const stats = Ouw25Rules.calculateShip({
           shipClass: values.ship_class || "0",
@@ -369,6 +372,9 @@
           crew_low: stats.crewLow ? "1" : "0",
           crew_half_or_less: stats.crew * 2 <= stats.crewCapacity ? "1" : "0",
           crew_empty: stats.crew === 0 ? "1" : "0",
+          crew_warning: stats.crew * 2 <= stats.crewCapacity
+            ? `Мало матросов. Экипаж: ${stats.crew} из ${stats.crewCapacity}.`
+            : "",
           unrest_progress: String(stats.unrestProgress),
           unrest_meter_label: `${Math.ceil(stats.unrest)} / 25`,
           unrest_display: String(Math.ceil(stats.unrest)),
@@ -397,6 +403,18 @@
     });
   }
 
+  function addShipDamage(onComplete) {
+    const names = Array.from({ length: 11 }, (_, index) => `ship_damage_${index + 1}`);
+    getAttrs(names, function (values) {
+      const next = names.find((name) => !isChecked(values[name]));
+      if (!next) {
+        onComplete(false);
+        return;
+      }
+      setAttrs({ [next]: "1" }, { silent: true }, function () { onComplete(true); });
+    });
+  }
+
   function rollForcedCheck(isEnabling) {
     const roll = [
       "&{template:default}",
@@ -407,6 +425,30 @@
 
     startRoll(roll, function (results) {
       finishRoll(results.rollId);
+      const successes = results.results["Успехов"]?.result;
+      if (!Number.isInteger(successes)) {
+        if (isEnabling) {
+          updateShip(function () {
+            setAttrs({ travel_status: "Не удалось определить результат проверки. Форсаж не включён." });
+          });
+        }
+        return;
+      }
+      if (successes <= 0) {
+        addShipDamage(function (added) {
+          updateShip(function () {
+            setAttrs({
+              travel_status: [
+                `Проверка ${isEnabling ? "включения" : "выключения"} форсажа провалена.`,
+                isEnabling ? "Форсаж не включён." : "",
+                added ? "Добавлен 1 полом." : "Все ячейки поломов уже отмечены.",
+              ].filter(Boolean).join(" "),
+            });
+          });
+        });
+      } else if (isEnabling) {
+        setAttrs({ forced_mode: "1" }, { silent: true }, updateShip);
+      }
     });
   }
 
@@ -417,32 +459,29 @@
 
   function onForcedModeChange(eventInfo) {
     const enabling = isChecked(eventInfo && eventInfo.newValue);
-    getAttrs(["illumination_mode", "ship_flaw_1", "ship_flaw_2", "ship_flaw_3", "ship_flaw_4"], function (values) {
+    getAttrs(["ship_flaw_1", "ship_flaw_2", "ship_flaw_3", "ship_flaw_4"], function (values) {
       if (enabling && hasWornEngine(values)) {
         setAttrs({ forced_mode: "0", travel_status: Ouw25Rules.describe("shipFlaw", "worn_engine") });
         updateShip();
         return;
       }
-      if (enabling && isChecked(values.illumination_mode)) {
-        setAttrs({ illumination_mode: "0" });
-      }
-      updateShip();
-      if (eventInfo && eventInfo.sourceType === "player") {
-        rollForcedCheck(enabling);
+      if (enabling && eventInfo && eventInfo.sourceType === "player") {
+        setAttrs({ forced_mode: "0" }, { silent: true }, function () {
+          updateShip(function () { rollForcedCheck(true); });
+        });
+      } else {
+        updateShip(function () {
+          if (eventInfo && eventInfo.sourceType === "player") {
+            rollForcedCheck(false);
+          }
+        });
       }
     });
   }
 
-  function onIlluminationModeChange(eventInfo) {
-    if (isChecked(eventInfo && eventInfo.newValue)) {
-      setAttrs({ forced_mode: "0" });
-    }
-    updateShip();
-  }
-
   function toggleForcedMode() {
     getAttrs([
-      "forced_mode", "illumination_mode",
+      "forced_mode",
       "ship_flaw_1", "ship_flaw_2", "ship_flaw_3", "ship_flaw_4",
     ], function (values) {
       const enabling = !isChecked(values.forced_mode);
@@ -451,12 +490,15 @@
         return;
       }
 
+      if (enabling) {
+        rollForcedCheck(true);
+        return;
+      }
+
       setAttrs({
-        forced_mode: enabling ? "1" : "0",
-        ...(enabling ? { illumination_mode: "0" } : {}),
+        forced_mode: "0",
       }, { silent: true }, function () {
-        updateShip();
-        rollForcedCheck(enabling);
+        updateShip(function () { rollForcedCheck(false); });
       });
     });
   }
@@ -466,7 +508,6 @@
       const enabling = !isChecked(values.illumination_mode);
       setAttrs({
         illumination_mode: enabling ? "1" : "0",
-        ...(enabling ? { forced_mode: "0" } : {}),
       }, { silent: true }, updateShip);
     });
   }
@@ -612,9 +653,36 @@
   on("clicked:pension_deposit", function () {
     getAttrs(["pension_balance", "pension_deposit"], function (values) {
       try {
+        Ouw25Rules.calculatePensionBalance(values.pension_balance || "0", values.pension_deposit);
+        setAttrs({
+          pension_deposit_pending: "1",
+          pension_deposit_amount: String(Number(values.pension_deposit)),
+          pension_status: "",
+        });
+      } catch (error) {
+        setAttrs({ pension_deposit_pending: "0", pension_status: error.message });
+      }
+    });
+  });
+
+  on("clicked:cancel_pension_deposit", function () {
+    setAttrs({ pension_deposit_pending: "0" });
+  });
+
+  on("clicked:confirm_pension_deposit", function () {
+    getAttrs(["pension_balance", "pension_deposit", "pension_deposit_pending", "pension_deposit_amount"], function (values) {
+      if (!isChecked(values.pension_deposit_pending)) return;
+      if (String(Number(values.pension_deposit)) !== values.pension_deposit_amount) {
+        setAttrs({
+          pension_deposit_pending: "0",
+          pension_status: "Сумма изменилась. Нажмите «Пополнить» ещё раз.",
+        });
+        return;
+      }
+      try {
         const balance = Ouw25Rules.calculatePensionBalance(
           values.pension_balance || "0",
-          values.pension_deposit
+          values.pension_deposit_amount
         );
         const previousThreshold = Math.min(8, Math.floor(Number(values.pension_balance || "0") / 30000));
         const threshold = Math.min(8, Math.floor(balance / 30000));
@@ -623,14 +691,16 @@
         );
         setAttrs({
           pension_balance: String(balance),
+          pension_step_bits: balanceStepBits(balance),
           pension_deposit: "",
+          pension_deposit_pending: "0",
           pension_status: crossed.length
             ? `Поздравляем! Новые пенсионные пороги: ${crossed.join(", ")} ог. ${threshold === 8 ? "Можно завершить контракт!" : "Открыто право на плановый отпуск."}`
             : "",
           pension_stage_status: Ouw25Rules.pensionStage(String(balance)),
         });
       } catch (error) {
-        setAttrs({ pension_status: error.message });
+        setAttrs({ pension_deposit_pending: "0", pension_status: error.message });
       }
     });
   });
@@ -742,7 +812,7 @@
     updateShip
   );
   on("change:forced_mode", onForcedModeChange);
-  on("change:illumination_mode", onIlluminationModeChange);
+  on("change:illumination_mode", updateShip);
   on("change:repeating_cargo:cargo_item_volume remove:repeating_cargo", updateShip);
   on("clicked:toggle_forced_mode", toggleForcedMode);
   on("clicked:toggle_illumination_mode", toggleIlluminationMode);

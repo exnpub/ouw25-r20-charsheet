@@ -178,6 +178,21 @@ test("illumination doubles fuel and halves unrest growth", () => {
   assert.equal(result.unrestHigh, true);
 });
 
+test("forced mode and illumination combine with independent fuel multipliers", () => {
+  for (const [crewCount, fuel, speed] of [["10", 4, 2], ["4", 8, 1]]) {
+    const result = Ouw25Rules.calculateShip({
+      shipClass: "0", crewCount, forced: true, illumination: true,
+      unrest: "0", cargoLoad: "0", holdBonus: "0",
+      merits: [], compartments: [], damage: [],
+    });
+
+    assert.equal(result.fuel, fuel);
+    assert.equal(result.speed, speed);
+    assert.equal(result.provisions, 0.5);
+    assert.equal(result.unrestPerSector, 0.5);
+  }
+});
+
 test("ship calculations include compartment space, cargo expansion, and strong hull", () => {
   const result = Ouw25Rules.calculateShip({
     shipClass: "0",
@@ -223,7 +238,7 @@ test("ship cargo occupancy includes fuel and provisions rounded up per 18 units"
   }
 });
 
-test("ship calculations reject invalid class and simultaneous modes but warn over-capacity crew", () => {
+test("ship calculations reject invalid class but warn over-capacity crew", () => {
   const base = {
     shipClass: "0",
     crewCount: "10",
@@ -241,10 +256,6 @@ test("ship calculations reject invalid class and simultaneous modes but warn ove
   assert.equal(overCapacity.fuel, 1);
   assert.equal(overCapacity.provisions, 1);
   assert.match(overCapacity.status, /Экипаж \(11\) превышает вместимость судна \(10\)/);
-  assert.throws(
-    () => Ouw25Rules.calculateShip({ ...base, forced: true, illumination: true }),
-    /не включаются одновременно/
-  );
   assert.throws(
     () => Ouw25Rules.calculateShip({ ...base, merits: ["large_hold"], holdBonus: "50" }),
     /Бонус вместимости/
