@@ -890,6 +890,11 @@
   background-image: var(--sheet-collapsible-paper);
 }
 
+.charsheet .sheet-app .sheet-reference-card.sheet-ship-equipment-card {
+  background-image: url("https://raw.githubusercontent.com/exnpub/ouw25-r20-charsheet/main/src/img/smallpaper5.webp");
+  padding: calc(0.8rem + 10px);
+}
+
 .charsheet .sheet-app details.sheet-reference-card:not(.sheet-personal-right > *) {
   padding-left: 7%;
 }
@@ -1087,19 +1092,23 @@
   column-gap: 0.5rem;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   position: relative;
+  row-gap: 0.3rem;
 }
 
 .charsheet .sheet-ship-overview {
   --sheet-ship-damage-size: 150px;
   --sheet-ship-heading-spacing-top: 4px;
   --sheet-ship-heading-spacing-bottom: 5px;
+  --sheet-ship-stat-gap: 0.5rem;
+  --sheet-ship-stat-track: calc((100cqw - 4 * var(--sheet-ship-stat-gap)) / 10);
+  --sheet-ship-cargo-fraction: 0.9;
   column-gap: 0.5rem;
   container-type: inline-size;
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: minmax(0, max-content) minmax(var(--sheet-ship-damage-size), 1fr);
   grid-template-rows: max-content auto;
-  row-gap: inherit;
+  row-gap: 0.6rem;
 }
 
 .charsheet .sheet-cooperative-ship .sheet-ship-damage {
@@ -1329,6 +1338,11 @@
   margin: 0.2rem 0 0.5rem;
 }
 
+.charsheet .sheet-cooperative-ship .sheet-ship-status {
+  min-height: 0.5em;
+  margin: 0.1rem 0 0.25rem;
+}
+
 .charsheet .sheet-pension-controls {
   align-items: flex-end;
 }
@@ -1440,7 +1454,30 @@
   display: block;
 }
 
-.charsheet .sheet-ship-resource:has(input[name="attr_fuel_low"]:checked) input[name="attr_fuel_stock"] {
+.charsheet .sheet-unrest-warning,
+.charsheet .sheet-unrest-critical,
+.charsheet .sheet-provisions-warning,
+.charsheet .sheet-provisions-critical {
+  color: var(--sheet-color-warning);
+  display: none;
+  font-weight: bold;
+  margin: 2em 0 0;
+}
+
+.charsheet .sheet-unrest-critical,
+.charsheet .sheet-provisions-critical {
+  color: var(--sheet-color-danger);
+}
+
+.charsheet .sheet-cooperative-ship:has(input[name="attr_unrest_high"]:checked):not(:has(input[name="attr_unrest_max"]:checked)) .sheet-unrest-warning,
+.charsheet .sheet-cooperative-ship:has(input[name="attr_unrest_max"]:checked) .sheet-unrest-critical,
+.charsheet .sheet-cooperative-ship:has(input[name="attr_provisions_low"]:checked):not(:has(input[name="attr_provisions_empty"]:checked)) .sheet-provisions-warning,
+.charsheet .sheet-cooperative-ship:has(input[name="attr_provisions_empty"]:checked) .sheet-provisions-critical {
+  display: block;
+}
+
+.charsheet .sheet-ship-resource:has(input[name="attr_fuel_low"]:checked) input[name="attr_fuel_stock"],
+.charsheet .sheet-ship-resource:has(input[name="attr_provisions_low"]:checked) input[name="attr_provisions_stock"] {
   color: var(--sheet-color-warning);
   font-weight: bold;
 }
@@ -1594,6 +1631,10 @@
   padding: 0.8rem;
 }
 
+.charsheet .sheet-cooperative-ship > .sheet-travel-panel {
+  margin-top: 0.5rem;
+}
+
 .charsheet .sheet-ship-quality-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1647,6 +1688,13 @@
   width: 100%;
 }
 
+.charsheet .sheet-cooperative-ship:not(:has(select[name="attr_ship_class"] option:is([value="3"], [value="4"], [value="5"], [value="6"]):checked)) select[name="attr_compartment_5"],
+.charsheet .sheet-cooperative-ship:not(:has(select[name="attr_ship_class"] option:is([value="4"], [value="5"], [value="6"]):checked)) select[name="attr_compartment_6"],
+.charsheet .sheet-cooperative-ship:not(:has(select[name="attr_ship_class"] option:is([value="5"], [value="6"]):checked)) select[name="attr_compartment_7"],
+.charsheet .sheet-cooperative-ship:not(:has(select[name="attr_ship_class"] option[value="6"]:checked)) select[name="attr_compartment_8"] {
+  display: none !important;
+}
+
 .charsheet .repeating_contracts,
 .charsheet .repeating_contacts,
 .charsheet .repeating_cargo {
@@ -1665,8 +1713,8 @@
   display: grid;
   grid-column: 1;
   grid-row: 2;
-  grid-template-columns: repeat(4, calc((100cqw - 2rem) / 10)) minmax(0, 1fr);
-  gap: 0.5rem;
+  grid-template-columns: repeat(4, var(--sheet-ship-stat-track)) minmax(0, 1fr);
+  gap: var(--sheet-ship-stat-gap);
   margin: 0.8rem 0;
   width: 100%;
 }
@@ -1679,6 +1727,15 @@
   width: 100%;
 }
 
+.ui-dialog .charsheet .sheet-ship-resources {
+  /* Match the four stat tracks and gaps, plus the visible width of the cargo card. */
+  width: calc(100% * var(--sheet-ship-cargo-fraction) +
+    4 * (var(--sheet-ship-stat-track) + var(--sheet-ship-stat-gap)) * (1 - var(--sheet-ship-cargo-fraction)));
+  grid-column: 1;
+  grid-template-columns: repeat(4, minmax(max-content, 1fr)) max-content;
+  min-width: max-content;
+}
+
 .charsheet .sheet-ship-resource {
   display: flex;
   flex-direction: column;
@@ -1687,10 +1744,19 @@
   font-size: 1em;
 }
 
+.charsheet .sheet-ship-resource:has(input[name="attr_cargo_load"], input[name="attr_unrest_display"]) {
+  position: relative;
+  left: -2px;
+}
+
 .charsheet .sheet-ship-resource input {
   box-sizing: border-box;
   min-width: 0;
   width: 100%;
+}
+
+.ui-dialog .charsheet .sheet-ship-resource > input[type="number"] {
+  display: block;
 }
 
 .charsheet .sheet-ship-resource-value {
@@ -1702,6 +1768,63 @@
 
 .charsheet .sheet-ship-resource-value input {
   flex: 0 0 auto;
+}
+
+.charsheet .sheet-ship-resource-value > span {
+  font-family: var(--sheet-font-accent);
+  font-size: 1.5em;
+}
+
+.charsheet .sheet-ship-resource:has(input:is(
+  [name="attr_unrest_high"], [name="attr_unrest_max"],
+  [name="attr_provisions_low"], [name="attr_provisions_empty"],
+  [name="attr_fuel_low"], [name="attr_fuel_empty"]
+):checked) > .sheet-ship-resource-value {
+  isolation: isolate;
+  position: relative;
+}
+
+.charsheet .sheet-ship-resource:has(input:is(
+  [name="attr_unrest_high"], [name="attr_unrest_max"],
+  [name="attr_provisions_low"], [name="attr_provisions_empty"],
+  [name="attr_fuel_low"], [name="attr_fuel_empty"]
+):checked) > .sheet-ship-resource-value::before {
+  background: var(--sheet-resource-mark) center / contain no-repeat;
+  content: "";
+  left: var(--sheet-resource-mark-left, 0.5rem);
+  opacity: 0.2;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: var(--sheet-resource-mark-transform, translateY(-50%) scale(1.5));
+  width: var(--sheet-resource-mark-width);
+  height: var(--sheet-resource-mark-height);
+  z-index: -1;
+}
+
+.charsheet .sheet-ship-resource:has(input[name="attr_unrest_display"]) {
+  --sheet-resource-mark: url("https://raw.githubusercontent.com/exnpub/ouw25-r20-charsheet/main/src/img/madness_mark.webp");
+  --sheet-resource-mark-transform: translateY(-50%) scale(1.5) translateY(-10%);
+  --sheet-resource-mark-width: 51px;
+  --sheet-resource-mark-height: 50px;
+}
+
+.charsheet .sheet-ship-resource:has(input[name="attr_provisions_stock"]) {
+  --sheet-resource-mark: url("https://raw.githubusercontent.com/exnpub/ouw25-r20-charsheet/main/src/img/hunger_mark.webp");
+  --sheet-resource-mark-width: 50px;
+  --sheet-resource-mark-height: 38px;
+}
+
+.charsheet .sheet-ship-resource:has(input[name="attr_fuel_stock"]) {
+  --sheet-resource-mark: url("https://raw.githubusercontent.com/exnpub/ouw25-r20-charsheet/main/src/img/burn_mark.webp");
+  --sheet-resource-mark-left: 50%;
+  --sheet-resource-mark-transform: translate(-50%, -50%) translateY(-15px) scale(1.65);
+  --sheet-resource-mark-width: 20px;
+  --sheet-resource-mark-height: 50px;
+}
+
+.ui-dialog .charsheet .sheet-ship-resource-value:has(> input[name="attr_fuel_stock"]) {
+  width: max-content;
 }
 
 .charsheet .sheet-ship-resource:has(input[name="attr_crew_half_or_less"]:checked) input[name="attr_crew_count"],
@@ -2035,7 +2158,8 @@
 }
 
 .charsheet .sheet-ship-stats > .sheet-stat-cargo {
-  width: 90%;
+  left: 12px;
+  width: calc(100% * var(--sheet-ship-cargo-fraction));
 }
 
 .charsheet .sheet-app .sheet-ship-stats > .sheet-stat {

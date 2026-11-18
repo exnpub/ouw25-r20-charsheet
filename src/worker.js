@@ -11,12 +11,13 @@
     ["shared_memory", "shared_memory_description", "memory"],
   ];
 
+  const COMPARTMENT_NAMES = Array.from({ length: 8 }, (_, index) => `compartment_${index + 1}`);
   const SHIP_SELECTIONS = [
     "ship_merit_1", "ship_merit_2", "ship_merit_3", "ship_merit_4",
     "ship_flaw_1", "ship_flaw_2", "ship_flaw_3", "ship_flaw_4",
     "stanine_1", "stanine_2", "stanine_3", "stanine_4",
     "stanine_5", "stanine_6", "stanine_7", "stanine_8",
-    "compartment_1", "compartment_2", "compartment_3", "compartment_4",
+    ...COMPARTMENT_NAMES,
     "gear_1", "gear_2",
   ];
 
@@ -258,10 +259,16 @@
     return new Set(selected).size !== selected.length;
   }
 
+  function activeCompartmentNames(shipClass) {
+    return COMPARTMENT_NAMES.slice(0, Math.max(4, Number(shipClass || "0") + 2));
+  }
+
   function equipmentDescription(values) {
-    const names = SHIP_SELECTIONS.filter((name) =>
-      name.startsWith("compartment_") || name.startsWith("stanine_") || name.startsWith("gear_")
-    );
+    const names = [
+      ...SHIP_SELECTIONS.filter((name) => name.startsWith("stanine_")),
+      ...activeCompartmentNames(values.ship_class),
+      "gear_1", "gear_2",
+    ];
     return names.map((name) => Ouw25Rules.describe("equipment", values[name]))
       .filter(Boolean)
       .join(" ");
@@ -296,6 +303,8 @@
       travel_warning: message,
       fuel_low: "0",
       fuel_warning: "",
+      provisions_low: "0",
+      provisions_empty: "0",
       ship_status: message,
     });
   }
@@ -318,7 +327,7 @@
     getShipAttrs(names, function (values, cargoVolumes) {
       const merits = [1, 2, 3, 4].map((index) => values[`ship_merit_${index}`]);
       const flaws = [1, 2, 3, 4].map((index) => values[`ship_flaw_${index}`]);
-      const compartments = [1, 2, 3, 4].map((index) => values[`compartment_${index}`]);
+      const compartments = activeCompartmentNames(values.ship_class).map((name) => values[name]);
       const damage = damageNames.map((name) => isChecked(values[name]));
       let forced = isChecked(values.forced_mode);
       const illumination = isChecked(values.illumination_mode);
@@ -355,10 +364,12 @@
         const equipmentDescriptionText = equipmentDescription(values);
         const freeStanines = Array.from({ length: stats.stanines }, (_, index) =>
           values[`stanine_${index + 1}`]
-        ).filter((equipment) => !equipment).length;
+        ).filter((equipment) => !equipment || equipment === "none").length;
         const fuelStock = Number(values.fuel_stock || "0");
         const provisionsStock = Number(values.provisions_stock || "0");
         const fuelLow = fuelStock > 0 && fuelStock <= stats.fuel * 5;
+        const provisionsEmpty = provisionsStock === 0;
+        const provisionsLow = !provisionsEmpty && provisionsStock <= stats.provisions * stats.speed * 5;
         const shortages = [];
         if (stats.crew === 0) {
           shortages.push("Движение дальше невозможно: не осталось матросов.");
@@ -368,11 +379,10 @@
             ? "Топливо закончилось."
             : `Недостаточно топлива: осталось ${fuelStock}, требуется ${stats.fuel}.`);
         }
-        if (provisionsStock < stats.provisions) {
-          shortages.push(provisionsStock === 0
-            ? "Провиант закончился."
-            : `Недостаточно провианта: осталось ${provisionsStock}, требуется ${stats.provisions}.`);
+        if (!provisionsEmpty && provisionsStock < stats.provisions) {
+          shortages.push(`Недостаточно провианта: осталось ${provisionsStock}, требуется ${stats.provisions}.`);
         }
+        const travelBlocked = provisionsEmpty || shortages.length > 0;
 
         setAttrs({
           ship_speed: String(stats.speed),
@@ -403,15 +413,16 @@
           unrest_max: Math.ceil(stats.unrest) >= 25 ? "1" : "0",
           ship_merit_description: Ouw25Rules.describeMany("shipMerit", merits),
           ship_flaw_description: Ouw25Rules.describeMany("shipFlaw", flaws),
-          equipment_description: equipmentDescriptionText,
+          equipment_description: equipmentDescriptionText || "...",
           fuel_empty: fuelStock === 0 ? "1" : "0",
           fuel_low: fuelLow ? "1" : "0",
           fuel_warning: fuelLow
             ? `Мало топлива. Полных секторов в запасе: ${Math.floor(fuelStock / stats.fuel)} (расход ${stats.fuel} ст./сектор).`
             : "",
-          provisions_empty: provisionsStock === 0 ? "1" : "0",
-          travel_blocked: shortages.length ? "1" : "0",
-          travel_warning: shortages.length ? `${shortages.join(" ")} Переход недоступен.` : "",
+          provisions_low: provisionsLow ? "1" : "0",
+          provisions_empty: provisionsEmpty ? "1" : "0",
+          travel_blocked: travelBlocked ? "1" : "0",
+          travel_warning: travelBlocked ? [...shortages, "Переход недоступен."].join(" ") : "",
           travel_status: "",
           ship_status: status,
         }, { silent: true }, function () {
@@ -562,7 +573,7 @@
           provisionsStock: values.provisions_stock || "0",
           holdBonus: values.hold_bonus || "0",
           merits: [1, 2, 3, 4].map((index) => values[`ship_merit_${index}`]),
-          compartments: [1, 2, 3, 4].map((index) => values[`compartment_${index}`]),
+          compartments: activeCompartmentNames(values.ship_class).map((name) => values[name]),
           damage: [],
         });
         const fuel = Ouw25Rules.parseResource(values.fuel_stock || "0", "Запас топлива");
@@ -829,7 +840,8 @@
     updatePersonal
   );
   on(
-    "sheet:opened change:ship_class change:crew_count change:unrest change:cargo_load change:fuel_stock change:provisions_stock change:hold_bonus change:ship_damage_1 change:ship_damage_2 change:ship_damage_3 change:ship_damage_4 change:ship_damage_5 change:ship_damage_6 change:ship_damage_7 change:ship_damage_8 change:ship_damage_9 change:ship_damage_10 change:ship_damage_11 change:ship_merit_1 change:ship_merit_2 change:ship_merit_3 change:ship_merit_4 change:ship_flaw_1 change:ship_flaw_2 change:ship_flaw_3 change:ship_flaw_4 change:stanine_1 change:stanine_2 change:stanine_3 change:stanine_4 change:stanine_5 change:stanine_6 change:stanine_7 change:stanine_8 change:compartment_1 change:compartment_2 change:compartment_3 change:compartment_4 change:gear_1 change:gear_2",
+    "sheet:opened change:ship_class change:crew_count change:unrest change:cargo_load change:fuel_stock change:provisions_stock change:hold_bonus change:ship_damage_1 change:ship_damage_2 change:ship_damage_3 change:ship_damage_4 change:ship_damage_5 change:ship_damage_6 change:ship_damage_7 change:ship_damage_8 change:ship_damage_9 change:ship_damage_10 change:ship_damage_11 change:ship_merit_1 change:ship_merit_2 change:ship_merit_3 change:ship_merit_4 change:ship_flaw_1 change:ship_flaw_2 change:ship_flaw_3 change:ship_flaw_4 change:stanine_1 change:stanine_2 change:stanine_3 change:stanine_4 change:stanine_5 change:stanine_6 change:stanine_7 change:stanine_8 change:gear_1 change:gear_2 " +
+      COMPARTMENT_NAMES.map((name) => `change:${name}`).join(" "),
     updateShip
   );
   on("change:forced_mode", onForcedModeChange);

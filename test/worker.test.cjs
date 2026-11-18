@@ -504,6 +504,52 @@ test("sheet open populates the chosen card and ship-derived values", () => {
   assert.equal(ship.cargo_capacity, "1600");
 });
 
+test("the equipment card shows three dots when no equipment is installed", () => {
+  const attributes = { stanine_1: "slagthrower" };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.match(attributes.equipment_description, /Шлакомёт/);
+
+  attributes.stanine_1 = "none";
+  harness.trigger("change:stanine_1");
+  assert.equal(attributes.equipment_description, "...");
+  assert.equal(attributes.stanine_count, "2");
+
+  const reopened = createWorkerHarness(attributes, [], { applyWrites: true });
+  reopened.trigger("sheet:opened");
+  assert.equal(attributes.stanine_1, "none");
+  assert.equal(attributes.equipment_description, "...");
+  assert.equal(attributes.stanine_count, "2");
+
+  attributes.compartment_1 = "passenger";
+  reopened.trigger("change:compartment_1");
+  assert.match(attributes.equipment_description, /Пассажирский отсек/);
+});
+
+test("the ship counts selected special compartments only within its current class limit", () => {
+  const attributes = {
+    ship_class: "2", fuel_stock: "0", provisions_stock: "0",
+    compartment_5: "passenger", compartment_6: "premium",
+    compartment_7: "diving", compartment_8: "passenger",
+  };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(attributes.cargo_occupied, "0");
+
+  for (const [shipClass, occupied] of [["3", "420"], ["4", "945"], ["5", "1745"], ["6", "2165"]]) {
+    attributes.ship_class = shipClass;
+    harness.trigger("change:ship_class");
+    assert.equal(attributes.cargo_occupied, occupied);
+  }
+  attributes.compartment_8 = "premium";
+  harness.trigger("change:compartment_8");
+  assert.equal(attributes.cargo_occupied, "2270");
+  attributes.ship_class = "3";
+  harness.trigger("change:ship_class");
+  assert.equal(attributes.cargo_occupied, "420");
+  assert.equal(attributes.compartment_8, "premium");
+});
+
 test("the ship counts only unoccupied mounts available to its current class", () => {
   const attributes = {
     ship_class: "0",
@@ -993,8 +1039,8 @@ test("insufficient supplies do not change stocks or the previous undo record", (
 test("ship refresh blocks travel and marks depleted supplies, including on sheet open", () => {
   for (const [fuel, provisions, fuelEmpty, provisionsEmpty, warning] of [
     ["0", "10", "1", "0", /Топливо закончилось/],
-    ["10", "0", "0", "1", /Провиант закончился/],
-    ["0", "0", "1", "1", /Топливо закончилось.*Провиант закончился/],
+    ["10", "0", "0", "1", /^Переход недоступен\.$/],
+    ["0", "0", "1", "1", /Топливо закончилось.*Переход недоступен/],
     ["0.5", "10", "0", "0", /Недостаточно топлива/],
     ["10", "0.5", "0", "0", /Недостаточно провианта/],
   ]) {
@@ -1037,6 +1083,25 @@ test("travel availability follows changing fuel requirements and restores after 
   assert.equal(harness.attributes.travel_warning, "");
   assert.equal(harness.attributes.fuel_empty, "0");
   assert.equal(harness.attributes.provisions_empty, "0");
+});
+
+test("provision warnings use five watches, not five sectors, and clear after resupply", () => {
+  const harness = createWorkerHarness({
+    ship_class: "0", crew_count: "4", provisions_stock: "1.5", fuel_stock: "10",
+  }, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(harness.attributes.provisions_low, "0");
+  for (const [stock, low, empty] of [
+    ["1.25", "1", "0"], ["0.25", "1", "0"], ["0", "0", "1"], ["2", "0", "0"],
+  ]) {
+    harness.attributes.provisions_stock = stock;
+    harness.trigger("change:provisions_stock");
+    assert.equal(harness.attributes.provisions_low, low);
+    assert.equal(harness.attributes.provisions_empty, empty);
+  }
+  harness.attributes.crew_count = "10";
+  harness.trigger("change:crew_count");
+  assert.equal(harness.attributes.provisions_low, "1");
 });
 
 test("low-fuel warning starts at five sectors and follows current consumption", () => {

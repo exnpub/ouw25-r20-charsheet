@@ -479,7 +479,7 @@
           <label class="sheet-ship-name" data-tooltip="Название вашего кораблика">«<input type="text" name="attr_ship_name" aria-label="Название судна" title="Название вашего кораблика">»<span class="sheet-control-tooltip" role="tooltip">Название вашего кораблика</span></label>
         </div>
         <div class="sheet-ship-damage" role="group" aria-labelledby="ship-damage-heading">
-          <h3 id="ship-damage-heading">Поломы</h3>
+          <h3 id="ship-damage-heading">поломы</h3>
           <div class="sheet-ship-damage-checks" role="group" aria-labelledby="ship-damage-heading" tabindex="0">
           <div class="sheet-damage-1"><input type="checkbox" name="attr_ship_damage_1" value="1" aria-label="Полом 1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
           <div class="sheet-damage-2"><input type="checkbox" name="attr_ship_damage_2" value="1" aria-label="Полом 2"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
@@ -518,7 +518,6 @@
             <span class="sheet-control-tooltip" id="ship-cargo-tooltip" role="tooltip">Занятое место / общая вместимость трюма в стаунтах.</span>
           </div>
         </div>
-        </div>
         <div class="sheet-hold-bonus">
           Бонус за «Вместительный трюм»: +<input type="number" title="d6 × 100" name="attr_hold_bonus" min="0" max="600" step="100" value="0"> ст.
         </div>
@@ -535,13 +534,21 @@
             <input class="sheet-hidden-state" type="checkbox" name="attr_crew_empty" value="1">
           </label>
           <label class="sheet-ship-resource">Провиант, мер.
-            <input type="number" name="attr_provisions_stock" min="0" step="0.25" value="10">
+            <span class="sheet-ship-resource-value">
+              <input type="number" name="attr_provisions_stock" min="0" step="0.25" value="10">
+            </span>
+            <input class="sheet-hidden-state" type="checkbox" name="attr_provisions_low" value="1">
             <input class="sheet-hidden-state" type="checkbox" name="attr_provisions_empty" value="1">
           </label>
           <label class="sheet-ship-resource">Топливо, ст.
-            <input type="number" name="attr_fuel_stock" min="0" step="any" value="10">
+            <span class="sheet-ship-resource-value">
+              <input type="number" name="attr_fuel_stock" min="0" step="any" value="10">
+            </span>
             <input class="sheet-hidden-state" type="checkbox" name="attr_fuel_empty" value="1">
             <input class="sheet-hidden-state" type="checkbox" name="attr_fuel_low" value="1">
+          </label>
+          <label class="sheet-ship-resource">Груз в трюме, ст.
+            <input type="number" name="attr_cargo_load" min="0" step="1" value="0">
           </label>
           <label class="sheet-ship-resource">Смуты, ед.
             <span class="sheet-ship-resource-value">
@@ -552,9 +559,7 @@
             <input class="sheet-hidden-state" type="checkbox" name="attr_unrest_high" value="1">
             <input class="sheet-hidden-state" type="checkbox" name="attr_unrest_max" value="1">
           </label>
-          <label class="sheet-ship-resource">Груз в трюме, ст.
-            <input type="number" name="attr_cargo_load" min="0" step="1" value="0">
-          </label>
+        </div>
         </div>
         <p class="sheet-field-status sheet-ship-status"><span name="attr_ship_status"></span></p>
       </div>
@@ -571,15 +576,16 @@
           <button type="action" name="act_travel_sector_blocked" disabled>Пройти сектор<span class="sheet-control-tooltip" role="tooltip">Переход недоступен. Проверьте предупреждение ниже: для перехода нужны матросы, топливо и провиант.</span></button>
           <button type="action" name="act_undo_sector">Откатить сектор<span class="sheet-control-tooltip" role="tooltip">Один раз отменяет последний переход: возвращает потраченные запасы, вычитает добавленные смуту и время. Не отменяет броски и сохраняет прочие изменения запасов.</span></button>
           <button type="action" name="act_reset_sectors">Обнулить счётчик<span class="sheet-control-tooltip" role="tooltip">Запрашивает подтверждение обнуления счётчиков секторов и вахт в пути. Не меняет запасы, смуту и возможность откатить последний переход.</span></button>
-          <span class="sheet-travel-row-break" aria-hidden="true"></span>
           <button type="action" name="act_psychotherapy">Психотерапия<span class="sheet-control-tooltip" role="tooltip">Проверка 4d6 с дополнительными костями и осложнениями. Полный успех снижает смуту на d6, частичный — на d6/2 с округлением вниз. Без ограничения по вахтам.</span></button>
-          <button type="action" name="act_increase_unrest">Нарастить смуту<span class="sheet-control-tooltip" role="tooltip">Добавляет смуту: +1, +d6, +2d6, +3d6 или указанное вами количество. Результат броска выводится в чат.</span></button>
+          <button type="action" name="act_increase_unrest">Нарастить смуту<span class="sheet-control-tooltip" role="tooltip">Добавляет смуту: +1, +d6, +2d6, +3d6 или указанное вами количество. Результат броска выводится в чат.</button>
         </div>
+        <p class="sheet-unrest-warning" role="status">Смута близка к критической. Экипаж нервничает.</p>
+        <p class="sheet-unrest-critical" role="alert">Смута на максимуме! На борту царит безумие.</p>
+        <p class="sheet-provisions-warning" role="status">Мало провианта: запаса хватит на пять вахт или меньше.</p>
+        <p class="sheet-provisions-critical" role="alert">Провиант закончился!</p>
         <p class="sheet-travel-warning" role="alert"><span name="attr_travel_warning"></span></p>
         <p class="sheet-fuel-warning" role="status"><span name="attr_fuel_warning"></span></p>
         <p class="sheet-crew-warning" role="status"><span name="attr_crew_warning"></span></p>
-        <p class="sheet-unrest-warning" role="status">Смута близка к критической. Экипаж нервничает.</p>
-        <p class="sheet-unrest-critical" role="alert">Смута на максимуме! На борту царит безумие.</p>
         <input class="sheet-hidden-state" type="checkbox" name="attr_reset_sectors_pending" value="1">
         <div class="sheet-travel-controls sheet-reset-sectors-confirmation">
           <span>Обнулить счётчики секторов и вахт в пути?</span>
@@ -636,7 +642,7 @@
             <h3>Станины</h3>
             <div class="sheet-ship-equipment-list sheet-equipment-selects">
               <select name="attr_stanine_1" aria-label="Станина 1">
-                <option value="slagthrower" selected>Шлакомёт (установлен)</option><option value="">Свободна</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+                <option value="slagthrower" selected>Шлакомёт (установлен)</option><option value="none">Свободна</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
               </select>
               <select name="attr_stanine_2" aria-label="Станина 2">
                 <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
@@ -688,14 +694,25 @@
             <select name="attr_compartment_4" aria-label="Отсек 4">
               <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
             </select>
+            <select name="attr_compartment_5" aria-label="Отсек 5">
+              <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
+            </select>
+            <select name="attr_compartment_6" aria-label="Отсек 6">
+              <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
+            </select>
+            <select name="attr_compartment_7" aria-label="Отсек 7">
+              <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
+            </select>
+            <select name="attr_compartment_8" aria-label="Отсек 8">
+              <option value="">Нет</option><option value="passenger">Пассажирский отсек (420 ст.)</option><option value="premium">Премиум-отсек (525 ст.)</option><option value="diving">Погружной отсек (800 ст.)</option>
+            </select>
+          </div>
+          <div class="sheet-reference-card sheet-ship-equipment-card">
+            <h4>Эффекты оборудования</h4>
+            <p><span name="attr_equipment_description"></span></p>
           </div>
         </section>
       </div>
-      <p class="sheet-card-description"><span name="attr_equipment_description"></span></p>
-</div>
-<div class="bordered-sector">
-      <h3>Заметки</h3>
-    <textarea name="attr_cargo_notes"></textarea>
 </div>
     </div>
     <div class="sheet-cooperative-tab-panel sheet-cooperative-cargo">
