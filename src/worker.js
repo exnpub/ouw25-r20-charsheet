@@ -113,6 +113,23 @@
     });
   }
 
+  function updateCooperativeDebtTotal() {
+    getSectionIDs("repeating_contacts", function (ids) {
+      const names = ids.map((id) => `repeating_contacts_${id}_contact_debt`);
+      if (!names.length) {
+        setAttrs({ cooperative_debt_total: "0" });
+        return;
+      }
+      getAttrs(names, function (values) {
+        const total = names.reduce((sum, name) => {
+          const amount = Number(values[name]);
+          return sum + (Number.isFinite(amount) && amount >= 0 ? amount : 0);
+        }, 0);
+        setAttrs({ cooperative_debt_total: String(total) });
+      });
+    });
+  }
+
   function updatePensionStage() {
     getAttrs(["pension_balance", "pension_status"], function (values) {
       const updates = { pension_step_bits: "" };
@@ -336,6 +353,9 @@
           findDuplicates(flaws) ? "Недостатки судна нельзя выбирать повторно." : "",
         ].filter(Boolean).join(" ");
         const equipmentDescriptionText = equipmentDescription(values);
+        const freeStanines = Array.from({ length: stats.stanines }, (_, index) =>
+          values[`stanine_${index + 1}`]
+        ).filter((equipment) => !equipment).length;
         const fuelStock = Number(values.fuel_stock || "0");
         const provisionsStock = Number(values.provisions_stock || "0");
         const fuelLow = fuelStock > 0 && fuelStock <= stats.fuel * 5;
@@ -361,7 +381,7 @@
           ship_durability: String(stats.damaged),
           ship_durability_max: String(stats.durability),
           crew_capacity: String(stats.crewCapacity),
-          stanine_count: String(Ouw25Rules.SHIP_CLASSES[stats.classIndex].stanines),
+          stanine_count: String(freeStanines),
           cargo_occupied: String(stats.cargoOccupied),
           cargo_capacity: String(stats.holdCapacity),
           cargo_near_full: stats.holdCapacity - stats.cargoOccupied <= 100 ? "1" : "0",
@@ -713,6 +733,7 @@
   });
   on("sheet:opened change:pension_balance", updatePensionStage);
   on("sheet:opened change:repeating_creditors:creditor_amount remove:repeating_creditors", updateDebtTotal);
+  on("sheet:opened change:repeating_contacts:contact_debt remove:repeating_contacts", updateCooperativeDebtTotal);
   on("sheet:opened", function () {
     setAttrs({ luck_status: "" });
   });

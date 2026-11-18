@@ -58,6 +58,8 @@
   --sheet-color-danger: #b3261e;
   --sheet-color-warning: #690098;
   --sheet-color-accent-calm: #133e61;
+  --sheet-field-background: rgba(255, 248, 238, 0.7);
+  --sheet-name-font-size: 25px;
   box-sizing: border-box;
   color: #370f00;
   font-family: var(--sheet-font-body);
@@ -134,7 +136,7 @@
 
 .charsheet .sheet-app input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
 .charsheet .sheet-app select {
-  background-color: #fff8ee;
+  background-color: var(--sheet-field-background);
   box-sizing: border-box;
   height: 30px;
 }
@@ -207,17 +209,13 @@
   overflow-x: auto;
 }
 
-.charsheet .sheet-app .sheet-ship-damage {
-  display: flex !important;
-}
-
 .charsheet .sheet-app .sheet-ship-damage .sheet-damage-1,
 .charsheet .sheet-app .sheet-ship-damage .sheet-damage-2,
 .charsheet .sheet-app .sheet-ship-damage .sheet-damage-3 {
   display: inline-flex !important;
 }
 
-.charsheet .sheet-ship-damage label[class^="sheet-damage-"],
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"],
 .charsheet .sheet-character-wounds label {
   box-sizing: border-box;
   flex: 0 0 24px;
@@ -228,7 +226,7 @@
   width: 24px;
 }
 
-.charsheet .sheet-ship-damage label[class^="sheet-damage-"] input[type="checkbox"],
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"] input[type="checkbox"],
 .charsheet .sheet-character-wounds label input[type="checkbox"] {
   height: 24px;
   inset: 0;
@@ -240,7 +238,7 @@
   z-index: 1;
 }
 
-.charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-box,
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"] > .sheet-damage-box,
 .charsheet .sheet-character-wounds label > .sheet-damage-box {
   align-items: center;
   background: #fff8ee;
@@ -258,7 +256,7 @@
   z-index: 2;
 }
 
-.charsheet .sheet-ship-damage label[class^="sheet-damage-"] > .sheet-damage-icon,
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"] > .sheet-damage-icon,
 .charsheet .sheet-character-wounds label > .sheet-damage-icon {
   align-items: center;
   display: none !important;
@@ -305,10 +303,6 @@
   margin: 0 0.25rem 0 0;
   white-space: nowrap;
   font-size: 1.5em;
-}
-
-.charsheet .sheet-ship-damage .sheet-checklist-title {
-  font-size: 1.2em;
 }
 
 .charsheet .sheet-wounds h3.sheet-checklist-title {
@@ -521,11 +515,40 @@
   display: block;
 }
 
+.charsheet .sheet-app .sheet-panel-cooperative textarea:hover {
+  cursor: text;
+}
+
 .charsheet .sheet-cooperative-attributes-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 1.2rem;
   align-items: start;
+}
+
+.charsheet .sheet-cooperative-budget-row {
+  position: relative;
+}
+
+.charsheet .sheet-app .sheet-cooperative-debt-total {
+  color: var(--sheet-color-warning);
+  display: none;
+  font-family: var(--sheet-font-accent);
+  font-size: 2em;
+  left: 50%;
+  line-height: 1;
+  margin: 0;
+  pointer-events: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  transform: rotate(-2deg);
+  transform-origin: left center;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.charsheet .sheet-cooperative-budget-row > input[name="attr_cooperative_debt_total"][value]:not([value="0"]):not([value=""]) + .sheet-cooperative-debt-total {
+  display: block;
 }
 
 .charsheet .sheet-app .sheet-cooperative-budget {
@@ -535,7 +558,7 @@
   flex-direction: row;
   gap: 0.6rem;
   margin: 0;
-  padding: 0.8rem;
+  padding: 0rem;
   width: 100%;
 }
 
@@ -550,13 +573,28 @@
   min-width: 0;
 }
 
+.charsheet .sheet-cooperative-budget-column {
+  isolation: isolate;
+  position: relative;
+}
+
+.charsheet .sheet-cooperative-budget-column::before {
+  background: url("https://raw.githubusercontent.com/exnpub/ouw25-r20-charsheet/main/src/img/team.webp") center / contain no-repeat;
+  content: "";
+  inset: 0;
+  opacity: 0.1;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
 .charsheet .sheet-budget-value input {
   min-width: 15em;
 }
 
 .charsheet .sheet-app .sheet-cooperative-notes-column textarea {
   box-sizing: border-box;
-  height: 300px;
+  height: 350px;
   margin: 0;
   width: 100%;
 }
@@ -766,7 +804,7 @@
 }
 
 .charsheet .sheet-app input[name="attr_character_name"] {
-  font-size: 25px;
+  font-size: var(--sheet-name-font-size);
   line-height: 1.2;
   min-height: 42px;
 }
@@ -1051,35 +1089,86 @@
   position: relative;
 }
 
-.charsheet .sheet-cooperative-ship .sheet-ship-heading {
-  align-items: center !important;
-  display: flex !important;
-  flex-flow: row nowrap !important;
-  gap: 0.1rem !important;
-  grid-column: 1 / 4;
-  justify-content: flex-start !important;
-}
-
-.charsheet .sheet-cooperative-ship .sheet-ship-name {
-  display: flex !important;
-  flex: 0 1 auto !important;
-  margin: 0 !important;
-  min-width: 0 !important;
-  width: auto !important;
-}
-
-.charsheet .sheet-cooperative-ship .sheet-ship-class-select {
-  margin: 0 !important;
-  transform: none !important;
+.charsheet .sheet-ship-overview {
+  --sheet-ship-damage-size: 150px;
+  --sheet-ship-heading-spacing-top: 4px;
+  --sheet-ship-heading-spacing-bottom: 5px;
+  column-gap: 0.5rem;
+  container-type: inline-size;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, max-content) minmax(var(--sheet-ship-damage-size), 1fr);
+  grid-template-rows: max-content auto;
+  row-gap: inherit;
 }
 
 .charsheet .sheet-cooperative-ship .sheet-ship-damage {
-  column-gap: 0.2rem;
-  min-width: 0;
+  align-self: start;
+  box-sizing: border-box;
+  display: grid;
+  gap: 6px;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: var(--sheet-ship-damage-size);
+  justify-self: end;
+  /* Match the added heading space so this spanning item preserves the row sizing. */
+  margin-bottom: calc(var(--sheet-ship-heading-spacing-top) + var(--sheet-ship-heading-spacing-bottom));
+  padding: 6px 0;
+  position: relative;
+  transform: translate(-25px, -25px);
+  width: var(--sheet-ship-damage-size);
+}
+
+.charsheet .sheet-ship-damage::before {
+  aspect-ratio: 1;
+  background: url("https://raw.githubusercontent.com/exnpub/ouw25-r20-charsheet/main/src/img/fuel.webp") center / contain no-repeat;
+  content: "";
+  left: 50%;
+  pointer-events: none;
   position: absolute;
-  left: calc(50% + 25px);
-  top: 0;
-  width: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) translateY(calc(7% + 0.3 * var(--sheet-ship-damage-size)));
+  width: calc(2.3 * var(--sheet-ship-damage-size));
+  z-index: -1;
+}
+
+.charsheet .sheet-ship-damage > h3 {
+  color: var(--sheet-field-background);
+  line-height: 1.2;
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.charsheet .sheet-ship-damage-checks {
+  align-content: start;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(3, 36px);
+  justify-content: center;
+  overflow: auto;
+  scrollbar-gutter: stable both-edges;
+}
+
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"],
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"] input[type="checkbox"] {
+  height: 36px;
+  width: 36px;
+}
+
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"] > .sheet-damage-box,
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"] > .sheet-damage-icon {
+  height: 30px;
+  width: 30px;
+}
+
+.charsheet .sheet-ship-damage-checks .sheet-damage-icon {
+  font-size: 39px;
+}
+
+.charsheet .sheet-ship-damage .sheet-damage-box {
+  pointer-events: none;
 }
 
 .charsheet .sheet-cooperative-ship .sheet-hold-bonus {
@@ -1206,7 +1295,7 @@
 }
 
 .charsheet .sheet-app textarea {
-  background: #fff8ee;
+  background: var(--sheet-field-background);
   box-sizing: border-box;
   height: 60px;
   margin: 0.5rem;
@@ -1477,7 +1566,7 @@
   display: none !important;
 }
 
-.charsheet .sheet-ship-damage > label:has(input:checked) {
+.charsheet .sheet-ship-damage-checks > [class^="sheet-damage-"]:has(input:checked) {
   display: inline-flex !important;
 }
 
@@ -1571,9 +1660,12 @@
 
 .charsheet .sheet-ship-stats {
   box-sizing: border-box;
+  /* Let the heading alone determine the shared column width. */
+  contain: inline-size;
   display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-column: 1;
+  grid-row: 2;
+  grid-template-columns: repeat(4, calc((100cqw - 2rem) / 10)) minmax(0, 1fr);
   gap: 0.5rem;
   margin: 0.8rem 0;
   width: 100%;
@@ -1621,14 +1713,29 @@
 
 .charsheet .sheet-ship-heading {
   align-items: center;
-  display: grid;
+  display: flex;
+  font-size: calc(var(--sheet-name-font-size) * 0.9);
   gap: 0.35rem;
-  grid-column: 1 / -1;
-  grid-template-columns: minmax(min-content, max-content) auto max-content max-content;
+  grid-column: 1;
+  grid-row: 1;
   justify-content: start;
+  margin-block: var(--sheet-ship-heading-spacing-top) var(--sheet-ship-heading-spacing-bottom);
   min-width: 0;
   overflow: visible;
   width: 100%;
+}
+
+.charsheet .sheet-app .sheet-ship-heading > label,
+.charsheet .sheet-app .sheet-ship-heading > select,
+.charsheet .sheet-app .sheet-ship-heading > label > input {
+  font-size: inherit;
+}
+
+.charsheet .sheet-app .sheet-ship-heading > select,
+.charsheet .sheet-app .sheet-ship-heading > label > input {
+  line-height: 1.2;
+  margin: 0;
+  min-height: 42px;
 }
 
 .charsheet .sheet-ship-name {
@@ -1636,6 +1743,7 @@
   display: flex;
   flex: 0 1 auto;
   gap: 0.35rem;
+  margin: 0;
   min-width: 0;
   position: relative;
   white-space: nowrap;
@@ -1643,11 +1751,10 @@
 
 .charsheet .sheet-ship-name input {
   box-sizing: border-box;
-  flex: 0 1 20ch;
-  max-width: 20ch;
+  flex: 0 1 24ch;
+  max-width: 24ch;
   min-width: 0;
-  line-height: 18px;
-  width: 20ch;
+  width: 24ch;
 }
 
 .charsheet .sheet-ship-class-select {
@@ -1660,7 +1767,7 @@
 
 .charsheet .sheet-app .sheet-ship-class-select {
   appearance: none;
-  background-color: #fff8ee;
+  background-color: var(--sheet-field-background);
   background-image:
     linear-gradient(45deg, transparent 50%, #242323 50%),
     linear-gradient(135deg, #242323 50%, transparent 50%);
@@ -1668,12 +1775,8 @@
   background-repeat: no-repeat;
   background-size: 4px 4px;
   box-sizing: border-box;
-  line-height: 18px;
-  max-width: calc(24ch + 39px);
-  min-width: calc(24ch + 9px);
-  padding: 5px 20px 5px 5px;
-  transform: translateY(-1px);
-  width: calc(24ch + 9px);
+  padding: 4px 20px 4px 5px;
+  width: calc(19.584ch + 4.896px);
 }
 
 .charsheet .sheet-stat {
@@ -1779,10 +1882,14 @@
   font-size: 2.34375em;
 }
 
+
+.charsheet .sheet-budget-title {
+  font-family: var(--sheet-font-heading);
+}
+
 .charsheet .sheet-stat-symbol,
-.charsheet .sheet-budget-title,
-.charsheet .sheet-ship-name,
-.charsheet .sheet-ship-damage > .sheet-checklist-title {
+.charsheet .sheet-ship-prefix,
+.charsheet .sheet-ship-name {
   font-family: var(--sheet-font-accent);
 }
 
@@ -1909,6 +2016,57 @@
   z-index: 20;
 }
 
+.charsheet .sheet-ship-stats > .sheet-stat {
+  box-sizing: border-box;
+  height: 68px;
+  overflow-wrap: anywhere;
+  padding-block: 13px 3px;
+  position: relative;
+}
+
+.charsheet .sheet-ship-stats .sheet-stat-label {
+  line-height: 1;
+}
+
+.charsheet .sheet-ship-stats .sheet-stat-value {
+  line-height: 1.1;
+  position: relative;
+  top: 3px;
+}
+
+.charsheet .sheet-ship-stats > .sheet-stat-cargo {
+  width: 90%;
+}
+
+.charsheet .sheet-app .sheet-ship-stats > .sheet-stat {
+  background-image: none;
+  border-image: none;
+}
+
+.charsheet .sheet-ship-stats > .sheet-stat::before {
+  background: var(--sheet-border-color);
+  border-radius: inherit;
+  content: "";
+  inset: 4px -1px 14px;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  padding: 1px;
+  pointer-events: none;
+  position: absolute;
+}
+
+.charsheet .sheet-ship-stats > .sheet-stat-cargo::before {
+  mask: linear-gradient(to right, #000 75%, transparent 95%),
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+  mask-composite: intersect, exclude;
+}
+
+.charsheet .sheet-ship-stats > .sheet-stat-cargo > .sheet-control-tooltip {
+  left: auto;
+  right: 0;
+}
+
 .charsheet .sheet-travel-controls button:hover > .sheet-control-tooltip,
 .charsheet .sheet-travel-controls button:focus-visible > .sheet-control-tooltip,
 .charsheet .sheet-random-button:hover > .sheet-control-tooltip,
@@ -1916,7 +2074,9 @@
 .charsheet .sheet-luck-counter:hover > .sheet-control-tooltip,
 .charsheet .sheet-luck-counter:focus-visible > .sheet-control-tooltip,
 .charsheet .sheet-ship-name:hover > .sheet-control-tooltip,
-.charsheet .sheet-ship-name:focus-within > .sheet-control-tooltip {
+.charsheet .sheet-ship-name:focus-within > .sheet-control-tooltip,
+.charsheet .sheet-ship-stats > .sheet-stat:hover > .sheet-control-tooltip,
+.charsheet .sheet-ship-stats > .sheet-stat:focus-visible > .sheet-control-tooltip {
   transition-delay: 1s;
   visibility: visible;
 }

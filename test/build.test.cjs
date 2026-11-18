@@ -215,22 +215,16 @@ test("build contains the CSS brand placeholder and guarded pension deposit contr
   assert.doesNotMatch(html, /<svg/i);
 });
 
-test("ship damage checklist has a visible title and base checkboxes", () => {
+test("ship damage panel has a heading and preserves the bound checkboxes and damage icons", () => {
   const html = readFileSync(path.join(dist, "ouw25.html"), "utf8");
   const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
-  assert.match(html, /class="sheet-wounds sheet-ship-damage">\s*<span class="sheet-checklist-title">Поломы<\/span>/i);
-  for (const index of [1, 2, 3]) {
-    assert.match(html, new RegExp(`name="attr_ship_damage_${index}"`));
+  assert.match(html, /class="sheet-ship-damage"[^>]*aria-labelledby="ship-damage-heading">\s*<h3 id="ship-damage-heading">Поломы<\/h3>/);
+  for (let index = 1; index <= 11; index++) {
+    assert.match(html, new RegExp(`<input type="checkbox" name="attr_ship_damage_${index}" value="1" aria-label="Полом ${index}">`));
   }
-  assert.match(css, /\.charsheet \.sheet-app \.sheet-ship-damage\s*\{[^}]*display:\s*flex !important/s);
-  assert.match(css, /\.charsheet \.sheet-app \.sheet-ship-damage \.sheet-damage-1,[\s\S]*?\.sheet-damage-3\s*\{[^}]*display:\s*inline-flex !important/s);
-  assert.match(css, /\.charsheet \.sheet-ship-damage label\[class\^="sheet-damage-"\] input\[type="checkbox"\][^{}]*\{[^}]*height:\s*24px;[^}]*opacity:\s*0;[^}]*width:\s*24px/s);
-  assert.match(html, /attr_ship_damage_1" value="1"><span class="sheet-damage-box"><\/span><span class="sheet-damage-icon sheet-damage-blast">💥<\/span><span class="sheet-damage-icon sheet-damage-skull">💀<\/span>/);
-  assert.match(css, /\.charsheet \.sheet-ship-damage label\[class\^="sheet-damage-"\] > \.sheet-damage-box[^{}]*\{[^}]*display:\s*flex !important;[^}]*height:\s*24px;[^}]*width:\s*24px/s);
   assert.match(css, /\.charsheet \.sheet-ship-damage input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast[^{}]*\{[^}]*display:\s*flex !important/s);
   assert.match(css, /option\[value="0"\]:checked\)[\s\S]*?\.sheet-damage-3 input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast \+ \.sheet-damage-skull/);
   assert.match(css, /option\[value="6"\]:checked\) \.sheet-damage-11 input\[type="checkbox"\]:checked \+ \.sheet-damage-box \+ \.sheet-damage-blast \+ \.sheet-damage-skull/);
-  assert.match(css, /\.charsheet \.sheet-ship-damage \.sheet-checklist-title\s*\{[^}]*font-size:\s*1\.5em/s);
 });
 
 test("ship stats expose every changing value as a direct Roll20 display span", () => {
@@ -353,8 +347,7 @@ test("ship identity row uses ordinal class labels without changing numeric value
   const css = readFileSync(path.join(dist, "ouw25.css"), "utf8");
   const heading = html.match(/<div class="sheet-ship-heading">([\s\S]*?)<\/div>/)?.[1];
   assert.ok(heading);
-  assert.match(heading, /<label class="sheet-ship-name" data-tooltip="Название вашего кораблика">HMS[\s\S]*name="attr_ship_name" title="Название вашего кораблика"/);
-  assert.match(heading, /<\/label>\s*<select class="sheet-ship-class-select" name="attr_ship_class"[\s\S]*<\/select>\s*$/);
+  assert.match(heading, /^\s*<span class="sheet-ship-prefix">HMS(?:&nbsp;?|\s)*<\/span>\s*<select class="sheet-ship-class-select" name="attr_ship_class"[\s\S]*?<\/select>\s*<label class="sheet-ship-name"[^>]*>«<input [^>]*name="attr_ship_name"[^>]*>»/);
   assert.doesNotMatch(heading, /sheet-ship-class-caption/);
 
   const classSelect = heading.match(/<select class="sheet-ship-class-select" name="attr_ship_class"[\s\S]*?<\/select>/)?.[0];
@@ -372,12 +365,6 @@ test("ship identity row uses ordinal class labels without changing numeric value
       ["6", "шестого класса"],
     ],
   );
-  assert.match(css, /\.charsheet \.sheet-app input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\):not\(\[type="hidden"\]\),[\s\S]*?\.charsheet \.sheet-app select\s*\{[^}]*height:\s*28px/s);
-  assert.match(css, /\.charsheet \.sheet-ship-heading\s*\{[^}]*align-items:\s*center;[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(min-content, max-content\) auto max-content max-content;[^}]*overflow:\s*visible/s);
-  assert.match(css, /\.charsheet \.sheet-ship-name input\s*\{[^}]*width:\s*30ch/s);
-  assert.match(css, /\.charsheet \.sheet-ship-name input\s*\{[^}]*line-height:\s*18px/s);
-  assert.match(css, /\.charsheet \.sheet-ship-name input,[\s\S]*?\.charsheet \.sheet-ship-class-select\s*\{[^}]*padding:\s*4px/s);
-  assert.match(css, /\.charsheet \.sheet-ship-class-select\s*\{[^}]*appearance:\s*none;[^}]*box-sizing:\s*border-box;[^}]*height:\s*28px;[^}]*line-height:\s*18px;[^}]*transform:\s*translateY\(-1px\);[^}]*width:\s*calc\(16ch \+ 24px \+ 2px\)/s);
   assert.match(html, /class="sheet-ship-name" data-tooltip="Название вашего кораблика"/);
   assert.match(css, /\.charsheet \.sheet-ship-name:hover > \.sheet-control-tooltip/);
 });

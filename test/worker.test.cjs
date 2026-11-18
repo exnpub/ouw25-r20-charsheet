@@ -122,6 +122,38 @@ test("debts sum creditor amounts on open and recalculate after edits and removal
   assert.equal(attributes.debt_total, "0");
 });
 
+test("Cooperative debt totals only contact debts and updates on edits and removals", () => {
+  const attributes = {
+    repeating_contacts_first_contact_debt: "120",
+    repeating_contacts_second_contact_debt: "80",
+    repeating_contacts_blank_contact_who: "Someone",
+    repeating_contacts_invalid_contact_debt: "invalid",
+    repeating_contacts_negative_contact_debt: "-10",
+    repeating_creditors_first_creditor_amount: "999",
+  };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(attributes.cooperative_debt_total, "200");
+  assert.equal(attributes.debt_total, "999");
+
+  attributes.repeating_contacts_second_contact_debt = "30";
+  harness.trigger("change:repeating_contacts:contact_debt");
+  assert.equal(attributes.cooperative_debt_total, "150");
+  delete attributes.repeating_contacts_first_contact_debt;
+  harness.trigger("remove:repeating_contacts");
+  assert.equal(attributes.cooperative_debt_total, "30");
+  attributes.repeating_contacts_second_contact_debt = "";
+  harness.trigger("change:repeating_contacts:contact_debt");
+  assert.equal(attributes.cooperative_debt_total, "0");
+
+  Object.keys(attributes).filter((name) => name.startsWith("repeating_contacts_")).forEach((name) => {
+    delete attributes[name];
+  });
+  attributes.cooperative_debt_total = "30";
+  harness.trigger("remove:repeating_contacts");
+  assert.equal(attributes.cooperative_debt_total, "0");
+});
+
 test("debts ignore blank, invalid and negative creditor amounts", () => {
   const harness = createWorkerHarness({
     repeating_creditors_valid_creditor_amount: "100",
@@ -470,6 +502,29 @@ test("sheet open populates the chosen card and ship-derived values", () => {
   assert.equal(ship.ship_durability_max, "5");
   assert.equal(ship.cargo_occupied, "420");
   assert.equal(ship.cargo_capacity, "1600");
+});
+
+test("the ship counts only unoccupied mounts available to its current class", () => {
+  const attributes = {
+    ship_class: "0",
+    stanine_1: "slagthrower",
+    stanine_3: "harpoon",
+  };
+  const harness = createWorkerHarness(attributes, [], { applyWrites: true });
+  harness.trigger("sheet:opened");
+  assert.equal(attributes.stanine_count, "1");
+
+  attributes.stanine_2 = "winch";
+  harness.trigger("change:stanine_2");
+  assert.equal(attributes.stanine_count, "0");
+
+  attributes.stanine_1 = "";
+  harness.trigger("change:stanine_1");
+  assert.equal(attributes.stanine_count, "1");
+
+  attributes.ship_class = "2";
+  harness.trigger("change:ship_class");
+  assert.equal(attributes.stanine_count, "2");
 });
 
 test("changing ship class refreshes all class-based resource stats", () => {

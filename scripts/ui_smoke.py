@@ -306,33 +306,24 @@ def main():
         assert page.locator(".sheet-stanine-4").is_visible()
         assert not page.locator(".sheet-stanine-5").is_visible()
 
-        damage_label = page.locator(".sheet-ship-damage label").first
-        assert page.locator(".sheet-ship-damage h3").inner_text() == "Поломы:"
-        assert damage_label.locator("span").evaluate(
-            "(element) => getComputedStyle(element).display"
-        ) == "none"
-        assert page.locator(".sheet-ship-damage").evaluate(
-            "(element) => {"
-            "const centers = Array.from(element.children)"
-            ".filter((child) => getComputedStyle(child).display !== 'none')"
-            ".map((child) => { const rect = child.getBoundingClientRect(); return rect.top + rect.height / 2; });"
-            "return Math.max(...centers) - Math.min(...centers);"
-            "}"
-        ) <= 1
-        assert page.locator(".sheet-ship-damage").evaluate(
-            "(element) => element.scrollWidth <= element.clientWidth"
-        )
+        damage_panel = page.locator(".sheet-ship-damage")
+        assert damage_panel.get_by_role("heading", name="Поломы", level=3).is_visible()
+        damage_box = damage_panel.bounding_box()
+        assert (damage_box["width"], damage_box["height"]) == (150, 150)
+        stats_before = page.locator(".sheet-ship-stats").bounding_box()
         page.locator("select[name='attr_ship_merit_2']").select_option("strong_hull")
         page.locator("select[name='attr_ship_class']").select_option("6")
-        assert page.locator(".sheet-ship-damage label:visible").count() == 11
-        assert page.locator(".sheet-ship-damage").evaluate(
-            "(element) => {"
-            "const centers = Array.from(element.children)"
-            ".filter((child) => getComputedStyle(child).display !== 'none')"
-            ".map((child) => { const rect = child.getBoundingClientRect(); return rect.top + rect.height / 2; });"
-            "return Math.max(...centers) - Math.min(...centers);"
-            "}"
-        ) <= 1
+        boxes = [field.bounding_box() for field in damage_panel.locator("input:visible").all()]
+        assert len(boxes) == 11
+        assert damage_panel.bounding_box() == damage_box
+        assert page.locator(".sheet-ship-stats").bounding_box() == stats_before
+        for index, box in enumerate(boxes):
+            assert box["x"] == boxes[index % 3]["x"]
+            assert box["y"] == boxes[index // 3 * 3]["y"]
+        last_damage = damage_panel.get_by_role("checkbox", name="Полом 11", exact=True)
+        last_damage.scroll_into_view_if_needed()
+        last_box = last_damage.bounding_box()
+        assert last_box["y"] + last_box["height"] <= damage_box["y"] + damage_box["height"]
         low_crew = page.locator("input[name='attr_crew_low']")
         low_crew.evaluate("(element) => { element.checked = true; }")
         assert page.locator("input[name='attr_crew_count']").evaluate(

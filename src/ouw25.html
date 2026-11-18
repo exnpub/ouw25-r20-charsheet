@@ -376,10 +376,14 @@
     <div class="sheet-cooperative-tab-panel sheet-cooperative-attributes">
     <div class="sheet-cooperative-attributes-layout">
       <div class="sheet-cooperative-budget-column">
-        <label class="bordered-sector sheet-cooperative-budget">
-          <span class="sheet-budget-title">БЮДЖЕТ&nbsp</span>
-          <span class="sheet-budget-value"><input type="number" name="attr_cooperative_budget" min="0" step="1" inputmode="numeric"> ог.</span>
-        </label>
+        <div class="sheet-cooperative-budget-row">
+          <label class="sheet-cooperative-budget">
+            <span class="sheet-budget-title">Бюджет:</span>
+            <span class="sheet-budget-value"><input type="number" name="attr_cooperative_budget" min="0" step="1" inputmode="numeric"> ог.</span>
+          </label>
+          <input type="hidden" name="attr_cooperative_debt_total" value="0">
+          <p class="sheet-cooperative-debt-total">Долгов: <span name="attr_cooperative_debt_total">0</span> ог.</p>
+        </div>
         <p class="sheet-field-status"><span name="attr_cooperative_budget_status"></span></p>
       <div class="sheet-cooperative-cards">
       <div class="sheet-card-field">
@@ -415,7 +419,6 @@
     </div>
       </div>
       <div class="sheet-cooperative-notes-column">
-        <h3>Заметки</h3>
         <textarea name="attr_memory_details"></textarea>
       </div>
     </div>
@@ -461,10 +464,9 @@
 
     <div class="sheet-cooperative-tab-panel sheet-cooperative-ship">
       <div class="sheet-inline-fields">
+        <div class="sheet-ship-overview">
         <div class="sheet-ship-heading">
-          <label class="sheet-ship-name" data-tooltip="Название вашего кораблика">HMS «
-            <input type="text" name="attr_ship_name" title="Название вашего кораблика">
-                » <span class="sheet-control-tooltip" role="tooltip">Название вашего кораблика</span></label>
+          <span class="sheet-ship-prefix">HMS&nbsp&nbsp</span>
           <select class="sheet-ship-class-select" name="attr_ship_class" aria-label="Класс судна">
             <option value="0">нулевого класса</option>
             <option value="1">первого класса</option>
@@ -474,31 +476,48 @@
             <option value="5">пятого класса</option>
             <option value="6">шестого класса</option>
           </select>
+          <label class="sheet-ship-name" data-tooltip="Название вашего кораблика">«<input type="text" name="attr_ship_name" aria-label="Название судна" title="Название вашего кораблика">»<span class="sheet-control-tooltip" role="tooltip">Название вашего кораблика</span></label>
         </div>
-        <div class="sheet-wounds sheet-ship-damage">
-          <span class="sheet-checklist-title">ПОЛОМЫ:  </span>
-          <label class="sheet-damage-1"><input type="checkbox" name="attr_ship_damage_1" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-2"><input type="checkbox" name="attr_ship_damage_2" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-3"><input type="checkbox" name="attr_ship_damage_3" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-4"><input type="checkbox" name="attr_ship_damage_4" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-5"><input type="checkbox" name="attr_ship_damage_5" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-6"><input type="checkbox" name="attr_ship_damage_6" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-7"><input type="checkbox" name="attr_ship_damage_7" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-8"><input type="checkbox" name="attr_ship_damage_8" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-9"><input type="checkbox" name="attr_ship_damage_9" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-10"><input type="checkbox" name="attr_ship_damage_10" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
-          <label class="sheet-damage-11"><input type="checkbox" name="attr_ship_damage_11" value="1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast">💥</span><span class="sheet-damage-icon sheet-damage-skull">💀</span></label>
+        <div class="sheet-ship-damage" role="group" aria-labelledby="ship-damage-heading">
+          <h3 id="ship-damage-heading">Поломы</h3>
+          <div class="sheet-ship-damage-checks" role="group" aria-labelledby="ship-damage-heading" tabindex="0">
+          <div class="sheet-damage-1"><input type="checkbox" name="attr_ship_damage_1" value="1" aria-label="Полом 1"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-2"><input type="checkbox" name="attr_ship_damage_2" value="1" aria-label="Полом 2"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-3"><input type="checkbox" name="attr_ship_damage_3" value="1" aria-label="Полом 3"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-4"><input type="checkbox" name="attr_ship_damage_4" value="1" aria-label="Полом 4"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-5"><input type="checkbox" name="attr_ship_damage_5" value="1" aria-label="Полом 5"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-6"><input type="checkbox" name="attr_ship_damage_6" value="1" aria-label="Полом 6"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-7"><input type="checkbox" name="attr_ship_damage_7" value="1" aria-label="Полом 7"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-8"><input type="checkbox" name="attr_ship_damage_8" value="1" aria-label="Полом 8"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-9"><input type="checkbox" name="attr_ship_damage_9" value="1" aria-label="Полом 9"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-10"><input type="checkbox" name="attr_ship_damage_10" value="1" aria-label="Полом 10"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          <div class="sheet-damage-11"><input type="checkbox" name="attr_ship_damage_11" value="1" aria-label="Полом 11"><span class="sheet-damage-box"></span><span class="sheet-damage-icon sheet-damage-blast" aria-hidden="true">💥</span><span class="sheet-damage-icon sheet-damage-skull" aria-hidden="true">💀</span></div>
+          </div>
         </div>
         <div class="sheet-ship-stats">
-          <div class="sheet-stat"><span class="sheet-stat-label">Скорость, сект. за вахту</span><span class="sheet-stat-value"><span name="attr_ship_speed">1</span></span></div>
-          <div class="sheet-stat"><span class="sheet-stat-label">Потребление топлива, на сектор</span><span class="sheet-stat-value"><span name="attr_ship_fuel_rate">1</span></span></div>
-          <div class="sheet-stat"><span class="sheet-stat-label">Потребление провианта, на сектор</span><span class="sheet-stat-value"><span name="attr_ship_provision_rate">1</span></span></div>
-          <div class="sheet-stat"><span class="sheet-stat-label">Станин, доступно</span><span class="sheet-stat-value"><span name="attr_stanine_count">2</span></span></div>
-          <div class="sheet-stat sheet-stat-cargo">
-            <span class="sheet-stat-label">Вместимость трюма, в стаунтах</span>
+          <div class="sheet-stat" tabindex="0" aria-describedby="ship-speed-tooltip">
+            <span class="sheet-stat-label">Скорость</span><span class="sheet-stat-value"><span name="attr_ship_speed">1</span></span>
+            <span class="sheet-control-tooltip" id="ship-speed-tooltip" role="tooltip">Сколько секторов судно проходит за вахту.</span>
+          </div>
+          <div class="sheet-stat" tabindex="0" aria-describedby="ship-fuel-tooltip">
+            <span class="sheet-stat-label">Потр. топлива</span><span class="sheet-stat-value"><span name="attr_ship_fuel_rate">1</span></span>
+            <span class="sheet-control-tooltip" id="ship-fuel-tooltip" role="tooltip">Расход топлива на переход через один сектор.</span>
+          </div>
+          <div class="sheet-stat" tabindex="0" aria-describedby="ship-provisions-tooltip">
+            <span class="sheet-stat-label">Потр. пров-та.</span><span class="sheet-stat-value"><span name="attr_ship_provision_rate">1</span></span>
+            <span class="sheet-control-tooltip" id="ship-provisions-tooltip" role="tooltip">Расход провианта на переход через один сектор.</span>
+          </div>
+          <div class="sheet-stat" tabindex="0" aria-describedby="ship-stanines-tooltip">
+            <span class="sheet-stat-label">Станин, своб.</span><span class="sheet-stat-value"><span name="attr_stanine_count">1</span></span>
+            <span class="sheet-control-tooltip" id="ship-stanines-tooltip" role="tooltip">Сколько станин свободно для установки оборудования.</span>
+          </div>
+          <div class="sheet-stat sheet-stat-cargo" tabindex="0" aria-describedby="ship-cargo-tooltip">
+            <span class="sheet-stat-label">Вмест. трюма, ст.</span>
             <span class="sheet-stat-value"><span name="attr_cargo_occupied">0</span></span> <span class="sheet-stat-symbol">/</span> <span class="sheet-stat-value"><span name="attr_cargo_capacity">1600</span></span>
             <input class="sheet-hidden-state" type="checkbox" name="attr_cargo_near_full" value="1">
+            <span class="sheet-control-tooltip" id="ship-cargo-tooltip" role="tooltip">Занятое место / общая вместимость трюма в стаунтах.</span>
           </div>
+        </div>
         </div>
         <div class="sheet-hold-bonus">
           Бонус за «Вместительный трюм»: +<input type="number" title="d6 × 100" name="attr_hold_bonus" min="0" max="600" step="100" value="0"> ст.
@@ -617,7 +636,7 @@
             <h3>Станины</h3>
             <div class="sheet-ship-equipment-list sheet-equipment-selects">
               <select name="attr_stanine_1" aria-label="Станина 1">
-                <option value="slagthrower">Шлакомёт (установлен)</option><option value="">Свободна</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
+                <option value="slagthrower" selected>Шлакомёт (установлен)</option><option value="">Свободна</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
               </select>
               <select name="attr_stanine_2" aria-label="Станина 2">
                 <option value="">Свободна</option><option value="slagthrower">Шлакомёт</option><option value="harpoon">Гарпунная пушка</option><option value="water_cannon">Водомёт</option><option value="winch">Моторная лебёдка</option>
